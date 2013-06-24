@@ -14,7 +14,8 @@ of code transformers available for different view engines in node.js.
 Jade relies on eval'ing code-gen to work which is a major limitation in Dart which lacks eval.     
 To get around the limitation we're currently writing the code-gen Dart wrapped in an Isolate 
 boilerplate out to a file then immediately reading it back in with spawnUri and invoking the 
-new code asynchronously. 
+new code asynchronously in the 
+[runCompiledDartInIsolate() method](https://github.com/dartist/jaded/blob/master/lib/jaded.dart#L110-L161). 
 
 Although this works, it forces us to have a nonideal async API to convert jade to html at runtime. 
 If Dart offers a sync API for evaluating Dart code we'll convert it back to a sync API.
