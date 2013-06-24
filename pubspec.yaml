@@ -1,0 +1,7 @@
+name: jaded
+description: A sample command-line application
+dependencies:
+  character_parser: any
+
+#dependencies:
+#  unittest: any
