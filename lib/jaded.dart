@@ -7,6 +7,7 @@ import "dart:mirrors";
 import "dart:isolate";
 import "dart:async";
 import "package:character_parser/character_parser.dart";
+import "runtime.dart" as jade;
 
 part "utils.dart";
 part "inline_tags.dart";
@@ -87,7 +88,7 @@ Future<String> compile(str, [Map options]){
 
   if (options['compileDebug'] != false) {
     fn = [
-          'jade.debug = [{ "lineno": 1, "filename": "$filename" }];'
+          'jade.debug = [new Debug(lineno: 1, filename: "$filename")];'
           , 'try {'
           , parse(str, options)
           , '} catch (err) {'
@@ -115,30 +116,16 @@ Future<String> runCompiledDartInIsolate(String fn) {
   var isolateWrapper = 
 """
 import 'dart:isolate';
-import '../lib/runtime.dart' as runtime;
+import '../lib/runtime.dart';
+import '../lib/runtime.dart' as jade;
 
-class Jade {
-  List<DebugSrc> debug = [new DebugSrc()];
-  Function merge = runtime.merge;
-  Function nulls = runtime.nulls;
-  Function joinClasses = runtime.joinClasses;
-  Function attrs = runtime.attrs;
-  Function escape = runtime.escape;
-  Function rethrows = runtime.rethrows;
-}
-class DebugSrc {
-  String filename;
-  int lineno;
-  DebugSrc([this.filename,this.lineno]);
-}
-
-render(Jade jade, Map locals) { 
+render(Map locals) { 
   $fn 
 }
 
 main() {
   port.receive((msg, SendPort replyTo) {
-    var html = render(new Jade(),{});
+    var html = render({});
     replyTo.send(html.toString());
   });
 }

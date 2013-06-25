@@ -1,8 +1,15 @@
-//part of jaded;
-
 import 'dart:io';
 import 'dart:math' as Math;
 import 'dart:json' as JSON;
+
+String interp;
+List<Debug> debug;
+
+class Debug {
+  String filename;
+  int lineno;
+  Debug({this.lineno, this.filename});
+}
 
 nulls(val) => val != null && val != '';
 
@@ -31,18 +38,18 @@ merge(Map a, Map b) {
 }  
   
 String attrs(Map obj, [Map escaped]){
-  var buf = []
-  , terse = obj['terse'];
+  var buf = [];
+  bool terse = obj['terse'];
 
   obj.remove('terse');
-  var keys = obj.keys;
-  var len = keys.length;
+  List<String> keys = obj.keys.toList();
+  int len = keys.length;
 
-  if (len) {
+  if (len > 0) {
     buf.add('');
     for (var i = 0; i < len; ++i) {
-      var key = keys[i]
-        , val = obj[key];
+      String key = keys[i];
+      var val = obj[key];
 
       if (val is bool || null == val) {
         if (val != null) {
@@ -54,10 +61,10 @@ String attrs(Map obj, [Map escaped]){
       } else if (0 == key.indexOf('data') && val is! String) {
         buf.add("$key='${JSON.stringify(val)}'");
       } else if ('class' == key) {
-        if (val = escape(joinClasses(val))) {
+        if ((val = escape(joinClasses(val))) != null) {
           buf.add('$key="$val"');
         }
-      } else if (escaped != null && escaped[key]) {
+      } else if (escaped != null && escaped[key] != null) {
         buf.add('$key="${escape(val)}"');
       } else {
         buf.add('$key=$val"');
@@ -75,7 +82,8 @@ escape(html) => "$html"
   .replaceAll('"', '&quot;');
 
 rethrows(err, filename, lineno){
-  if (filename == null) throw err;
+//  print("filename: $filename, lineno: $lineno, err: $err");
+  if (filename == null || filename == "undefined") throw err;
 //  if (typeof window != 'undefined') throw err;
 
   var context = 3;

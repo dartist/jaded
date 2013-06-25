@@ -12,7 +12,7 @@ class Parser {
   List contexts;
   Parser extending;
   
-  String _spaces;
+  int _spaces;
     
   Parser([this.input, this.filename, this.options]){
     lexer = new Lexer(input, options);
@@ -28,7 +28,7 @@ class Parser {
     return null;
   }
 
-  advance() => lexer.advance();
+  Token advance() => lexer.advance();
 
   void skip(int n){
     while (n-- > 0) advance();
@@ -341,7 +341,7 @@ class Parser {
     block.line = line();
     var spaces = expect('indent').val;
     if (null == _spaces) _spaces = spaces;    
-    var indent = new List.filled(spaces - _spaces + 1, ' ').join('');
+    var indent = new List.filled(spaces - _spaces + 1, '').join(' ');
     while ('outdent' != peek().type) {
       switch (peek().type) {
         case 'newline':
@@ -355,7 +355,7 @@ class Parser {
         default:
           var text = new Text(indent + advance().val);
           text.line = line();
-          block.push(text);
+          block.add(text);
       }
     }
 
@@ -372,7 +372,7 @@ class Parser {
       if ('newline' == peek().type) {
         advance();
       } else {
-        block.push(parseExpr());
+        block.add(parseExpr());
       }
     }
     expect('outdent');
@@ -390,9 +390,9 @@ class Parser {
     var i = 2;
     if ('attrs' == lookahead(i).type) ++i;
 
-    var tok = advance();
-    return tag(new Tag(tok.val)
-      ..selfClosing = tok.selfClosing);
+    var _tok = advance();
+    return tag(new Tag(_tok.val)
+      ..selfClosing = _tok.selfClosing);
   }  
  
   tag(Tag tag){
@@ -451,7 +451,7 @@ class Parser {
     // newline*
     while ('newline' == peek().type) advance();
 
-    tag.textOnly = tag.textOnly == null || textOnly.contains(tag.name);
+    tag.textOnly = tag.textOnly || textOnly.contains(tag.name);
 
     // script special-case
     if ('script' == tag.name) {

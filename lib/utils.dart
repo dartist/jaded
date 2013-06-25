@@ -5,15 +5,10 @@ merge(Map a, Map b) {
   return a;
 }
 
-_allGroups(Match m) =>
-  m.groups(new List.generate(m.groupCount + 1, (x) => x));
-
-List<String> execAll(RegExp regex, String str) =>
-  regex.allMatches(str).expand(_allGroups).toList(growable:false);
-
+//polyfill for js /regex/.exec() to ease porting
 List<String> exec(RegExp regex, String str){
   var m = regex.firstMatch(str);
-  return m != null ? _allGroups(m) : [];
+  return m != null ? m.groups(new List.generate(m.groupCount + 1, (x) => x)) : null;
 }
     
 

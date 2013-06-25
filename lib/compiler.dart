@@ -54,10 +54,10 @@ class Compiler {
   
   void buffer(String str, [interpolate=false]) {
     if (interpolate) {
-      var match = exec(new RegExp(r"(\\)?([#!]){((?:.|\n)*)$"), str);
-      if (match != null && match.length > 0) {
-        buffer(str.substring(0, match.index), false);
-        if (match[1]) { // escape
+      List<String> match = exec(new RegExp(r"(\\)?([#!]){((?:.|\n)*)$"), str);
+      if (match != null) {
+        buffer(str.substring(0, match.length), false);
+        if (match[1] != null) { // escape
           buffer(match[2] + '{', false);
           buffer(match[3], true);
           return;
@@ -116,7 +116,7 @@ class Compiler {
   }
 
   void prettyIndent([offset=0, newline=false]){
-    buffer((newline ? '\n' : '') + new List.filled(indents + offset, ' ').join(' '));
+    buffer((newline ? '\n' : '') + new List.filled(indents + offset, '').join('  '));
     if (parentIndents > 0)
       buf.add("buf.add.apply(buf, jade.indent);");
   }
@@ -124,7 +124,7 @@ class Compiler {
   void visit(Node node){    
     if (debug) {
       var filename = node.filename != null ? JSON.stringify(node.filename) : 'jade.debug[0].filename';
-      buf.add('jade.debug.insert(0, { "lineno": ${node.line}, "filename": "$filename" });');
+      buf.add('jade.debug.insert(0, new Debug(lineno: ${node.line}, filename: $filename));');
     }
 
     // Massive hack to fix our context
@@ -173,7 +173,7 @@ class Compiler {
 
     // Block keyword has a special meaning in mixins
     if (parentIndents > 0 && block.mode) {
-      if (pp) buf.add("jade.indent.add('${new List.filled(indents + 1,' ').join(' ')}');");
+      if (pp) buf.add("jade.indent.add('${new List.filled(indents + 1,'').join('  ')}');");
       buf.add('if (block != null) block();');
       if (pp) buf.add("jade.indent.removeLast();");
       return;
@@ -190,7 +190,7 @@ class Compiler {
 
       visit(block.nodes[i]);
       // Multiple text nodes are separated by newlines
-      if (block.nodes.length < i+1 && block.nodes[i].isText && block.nodes[i+1].isText)
+      if (block.nodes.length > i+1 && block.nodes[i].isText && block.nodes[i+1].isText)
         buffer('\n');
     }
   }
@@ -211,7 +211,7 @@ class Compiler {
     List attrs = mixin.attrs;
 
     if (mixin.call) {
-      if (pp) buf.add("jade.indent.add('${new List.filled(indents + 1, ' ').join(' ')}');");
+      if (pp) buf.add("jade.indent.add('${new List.filled(indents + 1, '').join('  ')}');");
       if (block || attrs.length) {
 
         buf.add(name + '.call({');
@@ -329,7 +329,8 @@ class Compiler {
     this.buffer(filters(filter.name, text, filter.attrs), true);
   }
   
-  visitText(Text text) => buffer(text.val, true);
+  visitText(Text text) => 
+    buffer(text.val, true);
 
   visitComment(Comment comment){
     if (!comment.buffer) return;
@@ -424,12 +425,27 @@ class Compiler {
     var val = this.attrs(attrs);
     if (val.inherits) {
       bufferExpression("jade.attrs(jade.merge({ ${val.buf} }, attributes), jade.merge(${val.escaped}, escaped, true))");
-    } else if (val.constant) {
-      throw new ParseError("eval not supported");
+    } else if (val.constant) { 
+      buffer(jade.attrs(fakeEval("{ ${val.buf} }"), JSON.parse(val.escaped)));
+      
+//      throw new ParseError("eval not supported");
 //      eval('var evalBuf={' + val.buf + '};');
 //      buffer(jade.attrs(evalBuf, JSON.parse(val.escaped)));
     } else {
       this.bufferExpression("jade.attrs({ ${val.buf} }, ${val.escaped})");
+    }
+  }
+  
+  fakeEval(String str){
+    var fakeJsonStr = str
+      .replaceAll("(",'')
+      .replaceAll(")",'')
+      .replaceAll("'",'"');
+    try {
+      return JSON.parse(fakeJsonStr);
+    } catch(e){
+      print("Err parsing fakeEval: $fakeJsonStr / $str: $e");
+      return {};
     }
   }
   
@@ -475,7 +491,7 @@ class Compiler {
   
     // Check arrays
     List<String> matches;
-    if ((matches = exec(new RegExp(r"^ *\[(.*)\] *$"), val)).length > 0)
+    if ((matches = exec(new RegExp(r"^ *\[(.*)\] *$"), val)) != null)
       return matches[1].split(',').every(isConstant);
   
     return false;

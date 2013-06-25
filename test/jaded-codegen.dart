@@ -1,27 +1,13 @@
 import 'dart:isolate';
-import '../lib/runtime.dart' as runtime;
+import '../lib/runtime.dart';
+import '../lib/runtime.dart' as jade;
 
-class Jade {
-  List<DebugSrc> debug = [new DebugSrc()];
-  Function merge = runtime.merge;
-  Function nulls = runtime.nulls;
-  Function joinClasses = runtime.joinClasses;
-  Function attrs = runtime.attrs;
-  Function escape = runtime.escape;
-  Function rethrows = runtime.rethrows;
-}
-class DebugSrc {
-  String filename;
-  int lineno;
-  DebugSrc([this.filename,this.lineno]);
-}
-
-render(Jade jade, Map locals) { 
-  jade.debug = [{ "lineno": 1, "filename": "undefined" }];
+render(Map locals) { 
+  jade.debug = [new Debug(lineno: 1, filename: "undefined")];
 try {
 var buf = [];
 var self = locals; if (self == null) self = {};
-buf.add("<p></p>'foo'");;return buf.join("");
+buf.add("yo, " + (jade.escape((jade.interp = name) == null ? '' : jade.interp)) + " is cool");;return buf.join("");
 } catch (err) {
   jade.rethrows(err, jade.debug[0].filename, jade.debug[0].lineno);
 } 
@@ -29,7 +15,7 @@ buf.add("<p></p>'foo'");;return buf.join("");
 
 main() {
   port.receive((msg, SendPort replyTo) {
-    var html = render(new Jade(),{});
+    var html = render({});
     replyTo.send(html.toString());
   });
 }

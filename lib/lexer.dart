@@ -48,11 +48,11 @@ class Lexer {
   consume(int len) =>
     input = input.substring(len);
   
-  scan(RegExp regexp, String type){
+  Token scan(RegExp regexp, String type){
     List<String> captures;
-    if ((captures = exec(regexp, input)).length > 0){
+    if ((captures = exec(regexp, input)) != null){
       consume(captures[0].length);
-      return tok(type, captures[1]);
+      return tok(type, captures.length > 1 ? captures[1] : null);
     }
   }
   
@@ -92,7 +92,7 @@ Token eos(){
   
 blank(){
   List<String> captures;
-  if ((captures = exec(new RegExp(r"^\n *\n"), input)).length > 0) {
+  if ((captures = exec(new RegExp(r"^\n *\n"), input)) != null) {
     consume(captures[0].length - 1);
     ++lineno;
     return pipeless 
@@ -103,7 +103,7 @@ blank(){
 
 comment(){
   List<String> captures;
-  if ((captures = exec(new RegExp(r"^ *\/\/(-)?([^\n]*)"), input)).length > 0) {
+  if ((captures = exec(new RegExp(r"^ *\/\/(-)?([^\n]*)"), input)) != null) {
     consume(captures[0].length);
     return tok('comment', captures[2])
       ..buffer = '-' != captures[1];
@@ -125,11 +125,12 @@ interpolation(){
 
 Token tag(){
   List<String> captures;
-  if ((captures = exec(new RegExp(r"^(\w[-:\w]*)(\/?)"), input)).length > 0) {
+  if ((captures = exec(new RegExp(r"^(\w[-:\w]*)(\/?)"), input)) != null) {
     consume(captures[0].length);
-    var _tok, name = captures[1];
+    Token _tok;
+    String name = captures[1];
     if (':' == name[name.length - 1]) {
-      name = name.slice(0, -1);
+      name = name.substring(0, name.length-1);
       _tok = tok('tag', name);
       defer(tok(':'));
       while (' ' == input[0]) input = input.substring(1);
@@ -149,13 +150,14 @@ id() => scan(new RegExp(r"^#([\w-]+)"), 'id');
 
 className() => scan(new RegExp(r"^\.([\w-]+)"), 'class');
 
-text() => scan(new RegExp(r"^(?:\| ?| ?)?([^\n]+)"), 'text');
+text() => 
+    scan(new RegExp(r"^(?:\| ?| ?)?([^\n]+)"), 'text');
 
 Extends() => scan(new RegExp(r"^extends? +([^\n]+)"), 'extends');
 
 prepend() {
   List<String> captures;
-  if ((captures = exec(new RegExp(r"^prepend +([^\n]+)"), input)).length > 0) {
+  if ((captures = exec(new RegExp(r"^prepend +([^\n]+)"), input)) != null) {
     consume(captures[0].length);
     var name = captures[1];    
     return tok('block', name)
@@ -165,7 +167,7 @@ prepend() {
 
 append(){
   List<String> captures;
-  if ((captures = exec(new RegExp(r"^append +([^\n]+)"), input)).length > 0) {
+  if ((captures = exec(new RegExp(r"^append +([^\n]+)"), input)) != null) {
     consume(captures[0].length);
     var name = captures[1];
     return tok('block', name)
@@ -175,7 +177,7 @@ append(){
 
 block(){
   List<String> captures;
-  if ((captures = exec(new RegExp(r"^block\b *(?:(prepend|append) +)?([^\n]*)"), input)).length > 0) {
+  if ((captures = exec(new RegExp(r"^block\b *(?:(prepend|append) +)?([^\n]*)"), input)) != null) {
     consume(captures[0].length);
     var mode = captures[1];
     if (mode == null || mode.isEmpty)
@@ -199,7 +201,7 @@ Default() => scan(new RegExp(r"^default *"), 'default');
 
 assignment() {
   List<String> captures;
-  if ((captures = exec(new RegExp(r"^(\w+) += *([^;\n]+)( *;? *)"), input)).length > 0) {
+  if ((captures = exec(new RegExp(r"^(\w+) += *([^;\n]+)( *;? *)"), input)) != null) {
     consume(captures[0].length);
     var name = captures[1];
     var val = captures[2];
@@ -209,7 +211,7 @@ assignment() {
 
 call(){
   List<String> captures;
-  if ((captures = exec(new RegExp(r"^\+([-\w]+)"), input)).length > 0) {
+  if ((captures = exec(new RegExp(r"^\+([-\w]+)"), input)) != null) {
     consume(captures[0].length);
     var _tok = tok('call', captures[1]);
 
@@ -232,7 +234,7 @@ call(){
 
 mixin(){
   List<String> captures;
-  if ((captures = exec(new RegExp(r"^mixin +([-\w]+)(?: *\((.*)\))?"), input)).length > 0) {
+  if ((captures = exec(new RegExp(r"^mixin +([-\w]+)(?: *\((.*)\))?"), input)) != null) {
     consume(captures[0].length);
     return tok('mixin', captures[1])
       ..args = captures[2];
@@ -241,7 +243,7 @@ mixin(){
 
 conditional() {
   List<String> captures;
-  if ((captures = exec(new RegExp(r"^(if|unless|else if|else)\b([^\n]*)"), input)).length > 0) {
+  if ((captures = exec(new RegExp(r"^(if|unless|else if|else)\b([^\n]*)"), input)) != null) {
     consume(captures[0].length);
     var type = captures[1];
     var js = captures[2];
@@ -259,7 +261,7 @@ conditional() {
 
 While() {
   List<String> captures;
-  if ((captures = exec(new RegExp(r"^while +([^\n]+)"), input)).length > 0) {
+  if ((captures = exec(new RegExp(r"^while +([^\n]+)"), input)) != null) {
     consume(captures[0].length);
     return tok('code', 'while (${captures[1]})');
   }
@@ -267,7 +269,7 @@ While() {
 
 each() {
   List<String> captures;
-  if ((captures = exec(new RegExp(r"^(?:- *)?(?:each|for) +([a-zA-Z_$][\w$]*)(?: *, *([a-zA-Z_$][\w$]*))? * in *([^\n]+)"), input)).length > 0) {
+  if ((captures = exec(new RegExp(r"^(?:- *)?(?:each|for) +([a-zA-Z_$][\w$]*)(?: *, *([a-zA-Z_$][\w$]*))? * in *([^\n]+)"), input)) != null) {
     consume(captures[0].length);
     return tok('each', captures[1])
       ..key = captures[2].isEmpty ? r'$index' : captures[2]
@@ -277,20 +279,20 @@ each() {
 
 code() {
   List<String> captures;
-  if ((captures = exec(new RegExp(r"^(!?=|-)[ \t]*([^\n]+)"), input)).length > 0) {
+  if ((captures = exec(new RegExp(r"^(!?=|-)[ \t]*([^\n]+)"), input)) != null) {
     consume(captures[0].length);
     var flags = captures[1];
     captures[1] = captures[2];
     return tok('code', captures[1])
       ..escape = flags.substring(0,1) == '='
-      ..buffer = flags.substring(0,1) == '=' || flags.substring(0,1) == '=';
+      ..buffer = flags.substring(0,1) == '=' || flags.substring(1,2) == '=';
   }
 }
 
 attrs() {
     if ('(' == input.substring(0,1)) {
       int index = bracketExpression().end;
-      String str = input.substring(1, index-1);
+      String str = input.substring(1, index);
       Token _tok = tok('attrs');
       int len = str.length;
       List states = ['key'];
@@ -307,17 +309,17 @@ attrs() {
       interpolate(String attr) {
         return attr.replaceAllMapped(new RegExp(r"(\\)?#\{(.+)"), (Match match){
           //_, escape, expr
-          var _ = match.group(0);
-          var escape = match.group(1);
-          var expr = match.group(2);
+          String _ = match.group(0);
+          String escape = match.group(1);
+          String expr = match.group(2);
               
-          if (escape) return _;
+          if (escape != null) return _;
           try {
             var range = parseJSExpression(expr);
-            if (expr[range.end] != '}') return _.substr(0, 2) + interpolate(_.substr(2));
-            return quote + " + (" + range.src + ") + " + quote + interpolate(expr.substr(range.end + 1));
+            if (expr[range.end] != '}') return _.substring(0, 2) + interpolate(_.substring(2));
+            return quote + " + (" + range.src + ") + " + quote + interpolate(expr.substring(range.end + 1));
           } catch (ex) {
-            return _.substr(0, 2) + interpolate(_.substr(2));
+            return _.substring(0, 2) + interpolate(_.substring(2));
           }
         });
       }
@@ -459,23 +461,23 @@ indent(){
     captures = exec(re, input);
 
     // spaces
-    if (captures.length > 0 && captures[1].length == 0) {
+    if (captures != null && captures[1].length == 0) {
       re = new RegExp(r"^\n( *)");
       captures = exec(re, input);
     }
 
     // established
-    if (captures.length > 0 && captures[1].length > 0) indentRe = re;
+    if (captures != null && captures[1].length > 0) indentRe = re;
   }
 
-  if (captures.length > 0) {
+  if (captures != null) {
     var _tok;
     int indents = captures[1].length;
 
     ++lineno;
     consume(indents + 1);
 
-    var firstChar = input.substring(0, 1);
+    var firstChar = input.isNotEmpty ? input.substring(0, 1) : null;
     if (' ' == firstChar || '\t' == firstChar) {
       throw new ParseError('Invalid indentation, you can use tabs or spaces but not both');
     }
@@ -491,7 +493,7 @@ indent(){
       }
       _tok = stash.removeLast();
     // indent
-    } else if (indents > 0 && indentStack.length > 0 && indents != indentStack[0]) {
+    } else if (indents > 0 && indents != (indentStack.length > 0 ? indentStack[0] : null)) {
       indentStack.insert(0, indents);
       _tok = tok('indent', indents);
     // newline
@@ -514,11 +516,12 @@ pipelessText() {
   }
 }
 
-colon() => scan(new RegExp(r"^: *"), ':');
+Token colon() => 
+    scan(new RegExp(r"^: *"), ':');
 
-advance() => _or(stashed(), () => next());
+Token advance() => _or(stashed(), () => next());
 
-next(){
+Token next(){
     var ret;
     if ((ret = deferred()) != null) return ret;
     if ((ret = blank()) != null) return ret;

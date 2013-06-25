@@ -1,11 +1,11 @@
 part of jaded;
 
 abstract class Node {
-  bool yield;
-  bool textOnly;
+  bool yield = false;
+  bool textOnly = false;
   Block block;
-  bool debug = false;
-  bool isText;
+  bool debug;
+  bool isText = false;
   String filename;
   bool buffer = false; //?
   int line; //?
@@ -235,6 +235,8 @@ class Tag extends Attrs {
 
 class Text extends Node {
   String val = '';
+  bool isText = true;
+  
   Text(line){
     if (line is String)
       this.val = line;
