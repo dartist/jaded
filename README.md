@@ -3,7 +3,10 @@ jaded
 
 Port of node.js [jade view engine](https://github.com/visionmedia/jade/) for Dart.
 
-Some tests are passing but the port is still in highly alpha experimental mode.
+### Current Status
+
+Still under development, but all the tests in 
+[jade.test.dart](https://github.com/dartist/jaded/blob/master/test/jade.test.dart) are now passing!
 
 Some missing functionality includes delegation to 
 [node.js transformers](https://github.com/ForbesLindesay/transformers) which maintains a repository
