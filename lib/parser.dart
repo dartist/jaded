@@ -215,7 +215,7 @@ class Parser {
     if (path[0] == '/' && options['basedir'] == null)
       throw new ParseError('the "basedir" option is required to use "$purpose" with "absolute" paths');
 
-    path = join(path[0] == '/' ? options['basedir'] : dirname(filename), path);
+    path = join([path[0] == '/' ? options['basedir'] : dirname(filename), path]);
 
     if (basename(path).indexOf('.') == -1) path += '.jade';
 
@@ -279,11 +279,11 @@ class Parser {
     var extname = _extname;
 
     // non-jade
-    var str = new File(path).readAsString();
-    if ('.jade' != path.substr(-5)) {
+    var str = new File(path).readAsStringSync();
+    if ('.jade' != path.substring(path.length - 5, path.length)) {
       str = str.replaceAll(new RegExp(r"\r"), '');
-      var ext = extname(path).slice(1);
-      if (filters.exists(ext)) str = filters(ext, str, { filename: path });
+      var ext = extname(path).substring(1);
+      if (filters.exists(ext)) str = filters(ext, str, { "filename": path });
       return new Literal(str);
     }
 
@@ -298,7 +298,7 @@ class Parser {
     ast.filename = path;
 
     if ('indent' == peek().type) {
-      ast.includeBlock().push(block());
+      ast.includeBlock().add(block());
     }
 
     return ast;
@@ -396,7 +396,7 @@ class Parser {
   }  
  
   tag(Tag tag){
-    var dot;
+    bool dot = false;
 
     tag.line = line();
 
@@ -456,7 +456,7 @@ class Parser {
     // script special-case
     if ('script' == tag.name) {
       var type = tag.getAttribute('type');
-      if (!dot && type && 'text/javascript' != type.replaceAll(new RegExp("^['\"]|['\"]\$"), '')) {
+      if (!dot && type != null && 'text/javascript' != type.replaceAll(new RegExp("^['\"]|['\"]\$"), '')) {
         tag.textOnly = false;
       }
     }

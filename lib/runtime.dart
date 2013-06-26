@@ -2,7 +2,7 @@ import 'dart:io';
 import 'dart:math' as Math;
 import 'dart:json' as JSON;
 
-String interp;
+var interp;
 List<Debug> debug;
 
 class Debug {
@@ -52,7 +52,7 @@ String attrs(Map obj, [Map escaped]){
       var val = obj[key];
 
       if (val is bool || null == val) {
-        if (val != null) {
+        if (val != null && val) {
           if (terse != null && terse)
             buf.add(key);
           else

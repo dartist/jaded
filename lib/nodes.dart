@@ -65,29 +65,37 @@ class Block extends Node {
 
 class Attr {
   String name;
-  String val;
+  var val;
   bool escaped;
   
   Attr([this.name,this.val,this.escaped]);
+  
+  toString() => "$name = $val / $escaped";
 }
 
 class Attrs extends Node {
   List<Attr> attrs = [];
     
-  void setAttribute(String name, String val, [bool escaped=false]){
+  void setAttribute(String name, var val, [bool escaped=false]){
     attrs.add(new Attr(name, val, escaped));
   }
   
   void removeAttribute(String name){
     for (var i = 0, len = attrs.length; i < len; ++i) {
-      if (attrs[i] && attrs[i].name == name)
+      if (attrs[i] != null && attrs[i].name == name)
         this.attrs.removeAt(i);      
     }
   }
   
-  String getAttribute(name) {
+  getAttribute(name) {
     var attr = attrs.firstWhere((x) => x != null && x.name == name, orElse:() => null);
-    return attr != null ? attr.val : null; 
+    if (attr != null)
+    {
+      var ret = attr.val;
+      print(ret); //prints "text/template"
+      return ret; //returning 
+    }
+    return null; 
   }
   
 }
@@ -127,15 +135,18 @@ class Code extends Node {
   Code([this.val, this.buffer, this.escape]){
     if (new RegExp(r"^ *else").hasMatch(val)) 
       debug = false;
+    if (buffer == null)
+      buffer = false;
   }
 }
 
 
 class Comment extends Node {
   String val;
-  List buffer;
   
-  Comment([this.val, this.buffer]);
+  Comment([this.val, buffer]){
+    this.buffer = buffer;
+  }
 }
 
 

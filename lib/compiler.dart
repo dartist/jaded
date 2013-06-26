@@ -54,26 +54,26 @@ class Compiler {
   
   void buffer(String str, [interpolate=false]) {
     if (interpolate) {
-      List<String> match = exec(new RegExp(r"(\\)?([#!]){((?:.|\n)*)$"), str);
+      Match match = new RegExp(r"(\\)?([#!]){((?:.|\n)*)$").firstMatch(str);
       if (match != null) {
-        buffer(str.substring(0, match.length), false);
-        if (match[1] != null) { // escape
-          buffer(match[2] + '{', false);
-          buffer(match[3], true);
+        buffer(str.substring(0, match.start), false);
+        if (match.group(1) != null) { // escape
+          buffer(match.group(2) + '{', false);
+          buffer(match.group(3), true);
           return;
         } else {
           String rest;
           String code;
           SrcPosition range;
           try {
-            rest = match[3];
+            rest = match.group(3);
             range = parseJSExpression(rest);
-            code = ('!' == match[2] ? '' : 'jade.escape') + "((jade.interp = ${range.src}) == null ? '' : jade.interp)";
+            code = ('!' == match.group(2) ? '' : 'jade.escape') + "((jade.interp = ${range.src}) == null ? '' : jade.interp)";
           } catch (ex) {
             throw ex;
             //didn't match, just as if escaped
-            buffer(match[2] + '{', false);
-            buffer(match[3], true);
+            buffer(match.group(2) + '{', false);
+            buffer(match.group(3), true);
             return;
           }
           bufferExpression(code);
@@ -379,9 +379,9 @@ class Compiler {
     var l = r"$$l";
     buf.add(''
       + '// iterate ' + each.obj + '\n'
-      + ';(function(){\n'
+      + ';((){\n'
       + '  var $obj = ${each.obj};\n'
-      + '  if (\'number\' == typeof $obj.length) {\n');
+      + '  if ($obj is Iterable) {\n');
 
     if (each.alternative != null) {
       buf.add('  if ($obj.length) {');
@@ -404,7 +404,7 @@ class Compiler {
     buf.add(''
       + '  } else {\n'
       + '    var $l = 0;\n'
-      + '    for (var ' + each.key + ' in $obj) {\n'
+      + '    for (var ' + each.key + ' in $obj.keys) {\n'
       + '      $l++;'
       + '      var ' + each.val + ' = $obj[${each.key}];\n');
 
@@ -416,7 +416,7 @@ class Compiler {
       visit(each.alternative);
       buf.add('    }');
     }
-    buf.add('  }\n}).call(this);\n');
+    buf.add('  }\n})();\n'); //buf.add('  }\n}).call(this);\n');
   }
   
   visitAttributes(List attrs){
@@ -438,9 +438,35 @@ class Compiler {
   
   fakeEval(String str){
     var fakeJsonStr = str
-      .replaceAll("(",'')
-      .replaceAll(")",'')
-      .replaceAll("'",'"');
+      .replaceAll('"{','{')
+      .replaceAll('}"','}');
+    
+    var sb = new StringBuffer();
+    bool inQuotes = false;
+    String lastQuote = null;
+    for (var c in fakeJsonStr.split(''))
+    {
+      if (!inQuotes)
+      {
+        if (c == '(' || c == ')') continue; //remove '()' outside quotes
+      }
+      else
+      {
+        if ((lastQuote == '"' && c == "'") || (lastQuote == "'" && c == '"')) {
+          if (c == "\"") sb.write('\\'); //escape quotes inside quotes
+          sb.write(c);
+          continue;
+        }          
+      }
+      if (c == '"' || c == "'") {
+        inQuotes = !inQuotes;
+        lastQuote = c;
+        c = '"';
+      }
+      sb.write(c);
+    }
+    fakeJsonStr = sb.toString();
+    
     try {
       return JSON.parse(fakeJsonStr);
     } catch(e){
@@ -456,7 +482,7 @@ class Compiler {
     var constant = attrs.every((attr) => isConstant(attr.val));
     var inherits = false;
 
-    if (this.terse) buf.add('terse: true');
+    if (this.terse) buf.add('"terse": true');
 
     attrs.forEach((attr){
       if (attr.name == 'attributes') return inherits = true;
@@ -482,7 +508,7 @@ class Compiler {
 
   isConstant(val){
     // Check strings/literals
-    if (new RegExp(r'^ *("([^"\\]*(\\.[^"\\]*)*)"' + r"|'([^'\\]*(\\.[^'\\]*)*)'|true|false|null|undefined) *$", caseSensitive:false).hasMatch(val))
+    if (new RegExp(r'^ *("([^"\\]*(\\.[^"\\]*)*)"' + r"|'([^'\\]*(\\.[^'\\]*)*)'|true|false|null|undefined) *$", caseSensitive:false).hasMatch("$val"))
     return true;
 
     // Check numbers

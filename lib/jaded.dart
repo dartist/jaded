@@ -59,8 +59,13 @@ parse(String str, [Map options])
       print('\nCompiled Function:\n\n\033[90m%s\033[0m');
       print(js.replaceAll(new RegExp("^",multiLine:true), '  '));
     }
-
-    return ''
+    
+    var sb = new StringBuffer();
+    for (var key in options.keys){
+      sb.write("var $key = locals['$key'];\n");
+    }
+    
+    return '${sb.toString()}'
       + 'var buf = [];\n'
       + (self
         ? 'var self = locals; if (self == null) self = {};\n' + js
@@ -81,14 +86,14 @@ Future<String> compile(str, [Map options]){
   if (options == null) options = {};
   var filename = options['filename'] != null
       ? JSON.stringify(options['filename'])
-      : 'undefined';
+      : 'null';
   var fn;
 
   str = stripBOM(str.toString());
 
   if (options['compileDebug'] != false) {
     fn = [
-          'jade.debug = [new Debug(lineno: 1, filename: "$filename")];'
+          'jade.debug = [new Debug(lineno: 1, filename: $filename)];'
           , 'try {'
           , parse(str, options)
           , '} catch (err) {'
@@ -99,7 +104,7 @@ Future<String> compile(str, [Map options]){
     fn = parse(str, options);
   }
 
-  return runCompiledDartInIsolate(fn); 
+  return runCompiledDartInIsolate(fn, options); 
   
 //  throw new UnimplementedError(); 
 //  if (options['client']) return new Function('locals', fn)
@@ -108,7 +113,7 @@ Future<String> compile(str, [Map options]){
 }
 
 int times = 0;
-Future<String> runCompiledDartInIsolate(String fn) {
+Future<String> runCompiledDartInIsolate(String fn, Map locals) {
   print("\n\n#${++times}:");
   print(fn);
 
@@ -125,7 +130,10 @@ render(Map locals) {
 
 main() {
   port.receive((msg, SendPort replyTo) {
-    var html = render({});
+    if (msg == "shutdown") {
+      
+    }
+    var html = render(${JSON.stringify(locals)});
     replyTo.send(html.toString());
   });
 }
@@ -142,25 +150,44 @@ main() {
   //Call generated code to get the results of render()
   renderPort.call("").then((html) {
     completer.complete(html);
+    renderPort.call("shutdown");
   });
   
   return completer.future; 
 }    
 
-render(str, [Map options, Function fn]){
+Future<String> render(str, [Map options]){
   if (options == null) options = {};
+
+  var completer = new Completer();
 
   // cache requires .filename
   if (options['cache'] == true && options['filename'] == null) {
-    return fn(new ParseError('the "filename" option is required for caching'));
+    completer.completeError(new ParseError('the "filename" option is required for caching'));
   }
-
+  else
+  {
 //  try {
-    var path = options['filename'];
-    var tmpl = options['cache'] == true
-      ? cache[path] != null ? cache[path] : (cache[path] = compile(str, options))
-      : compile(str, options);
-    fn(null, tmpl(options));
+    
+    var path = options['filename'];    
+    if (options['cache'] == true){
+      var cachedTmpl = cache[path]; 
+      if (cachedTmpl != null){
+        completer.complete(cache[path]);
+      }
+      else {
+        compile(str, options).then((tmpl){
+          cache[path] = tmpl;
+          completer.complete(cache[path]);
+        }).catchError(completer.completeError);
+      }
+    }
+    else {
+      compile(str, options).then((tmpl){
+        completer.complete(tmpl);        
+      }).catchError(completer.completeError);
+    }
+    
 //  } catch (err) {
 //    if (fn != null) fn(err);
 //    else {
@@ -171,7 +198,10 @@ render(str, [Map options, Function fn]){
 //      
 //      throw err;
 //    }
-//  }
+//  }    
+  }
+  
+  return completer.future;
 }
 
 renderFile(String path, [Map options, Function fn]){

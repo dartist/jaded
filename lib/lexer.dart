@@ -272,7 +272,7 @@ each() {
   if ((captures = exec(new RegExp(r"^(?:- *)?(?:each|for) +([a-zA-Z_$][\w$]*)(?: *, *([a-zA-Z_$][\w$]*))? * in *([^\n]+)"), input)) != null) {
     consume(captures[0].length);
     return tok('each', captures[1])
-      ..key = captures[2].isEmpty ? r'$index' : captures[2]
+      ..key = captures[2] == null || captures[2].isEmpty ? r'$index' : captures[2]
       ..code = captures[3];
   }
 }
@@ -285,7 +285,7 @@ code() {
     captures[1] = captures[2];
     return tok('code', captures[1])
       ..escape = flags.substring(0,1) == '='
-      ..buffer = flags.substring(0,1) == '=' || flags.substring(1,2) == '=';
+      ..buffer = flags.substring(0,1) == '=' || (flags.length > 1 && flags.substring(1,2) == '=');
   }
 }
 
@@ -317,7 +317,7 @@ attrs() {
           try {
             var range = parseJSExpression(expr);
             if (expr[range.end] != '}') return _.substring(0, 2) + interpolate(_.substring(2));
-            return quote + " + (" + range.src + ") + " + quote + interpolate(expr.substring(range.end + 1));
+            return quote + " + (\"\${" + range.src + "}\") + " + quote + interpolate(expr.substring(range.end + 1));
           } catch (ex) {
             return _.substring(0, 2) + interpolate(_.substring(2));
           }
