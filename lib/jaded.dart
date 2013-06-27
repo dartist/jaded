@@ -22,12 +22,16 @@ part "lexer.dart";
 part "parser.dart";
 part "compiler.dart";
 
-Map cache = {};
+Map<String,RenderAsync> cache = new Map<String,RenderAsync>();
+Map<String,String> fileCache = new Map<String,String>();
+
 
 log(o){
   print(o);
   return o;
 }
+
+typedef Future<String> RenderAsync([Map locals]);
 
 parse(String str, [Map options])
 {
@@ -82,7 +86,8 @@ stripBOM(String str) =>
     ? str.substring(1)
     : str;
 
-Future<String> compile(str, [Map options]){
+int times = 0;
+RenderAsync compile(str, [Map options]){
   if (options == null) options = {};
   var filename = options['filename'] != null
       ? JSON.stringify(options['filename'])
@@ -103,19 +108,13 @@ Future<String> compile(str, [Map options]){
   } else {
     fn = parse(str, options);
   }
+//  print("\n\n#${++times}:");
+//  print(fn);
 
-  return runCompiledDartInIsolate(fn, options); 
-  
-//  throw new UnimplementedError(); 
-//  if (options['client']) return new Function('locals', fn)
-//  fn = new Function('locals, jade', fn)
-//  return (locals) => fn(locals, Object.create(runtime));
+  return runCompiledDartInIsolate(fn); 
 }
 
-int times = 0;
-Future<String> runCompiledDartInIsolate(String fn, Map locals) {
-  print("\n\n#${++times}:");
-  print(fn);
+RenderAsync runCompiledDartInIsolate(String fn) {
 
 //Execute fn within Isolate. Shim Jade objects.
   var isolateWrapper = 
@@ -129,31 +128,39 @@ render(Map locals) {
 }
 
 main() {
-  port.receive((msg, SendPort replyTo) {
-    if (msg == "shutdown") {
-      
+  port.receive((Map msg, SendPort replyTo) {
+    if (msg["__shutdown"] == true) {
+      port.close();
+      return;
     }
-    var html = render(${JSON.stringify(locals)});
+    var html = render(msg);
     replyTo.send(html.toString());
   });
 }
 """;
 
-  var completer = new Completer();
-  
   //Ugly hack: Write compiled dart out to a static file
   new File("jaded-codegen.dart").writeAsStringSync(isolateWrapper);  
   
   //Re-read back generated file inside an isolate
-  var renderPort = spawnUri("jaded-codegen.dart");
+  SendPort renderPort = spawnUri("jaded-codegen.dart");
   
-  //Call generated code to get the results of render()
-  renderPort.call("").then((html) {
-    completer.complete(html);
-    renderPort.call("shutdown");
-  });
+  RenderAsync renderAsync = ([Map locals]){
+    if (locals == null)
+      locals = {};
+
+    var completer = new Completer();
+    
+    //Call generated code to get the results of render()
+    renderPort.call(locals).then((html) {
+      completer.complete(html);
+    })
+    .catchError(completer.completeError);
+    
+    return completer.future;    
+  };
   
-  return completer.future; 
+  return renderAsync;
 }    
 
 Future<String> render(str, [Map options]){
@@ -171,20 +178,26 @@ Future<String> render(str, [Map options]){
     
     var path = options['filename'];    
     if (options['cache'] == true){
-      var cachedTmpl = cache[path]; 
+      RenderAsync cachedTmpl = cache[path]; 
       if (cachedTmpl != null){
-        completer.complete(cache[path]);
+        cachedTmpl(options).then((html){
+          completer.complete(html);
+        });
       }
       else {
-        compile(str, options).then((tmpl){
-          cache[path] = tmpl;
-          completer.complete(cache[path]);
+        RenderAsync renderAsync = compile(str, options);
+        renderAsync(options).then((html){
+          cache[path] = renderAsync;
+          completer.complete(html);
         }).catchError(completer.completeError);
       }
     }
     else {
-      compile(str, options).then((tmpl){
-        completer.complete(tmpl);        
+      //One shot
+      var renderAsync = compile(str, options);
+      renderAsync(options).then((html){
+        completer.complete(html);        
+        renderAsync({ "__shutdown": true }); //When not caching, close port after use.
       }).catchError(completer.completeError);
     }
     
@@ -204,19 +217,23 @@ Future<String> render(str, [Map options]){
   return completer.future;
 }
 
-renderFile(String path, [Map options, Function fn]){
+Future<String> renderFile(String path, [Map options]){
   var key = path + ':string';
 
   if (options == null) options = {};
 
   try {
     options['filename'] = path;
+    options['cache'] = true;
+
     var str = options['cache']
-      ? cache[key] != null ? cache[key] : (cache[key] = new File(path).readAsStringSync())
+      ? fileCache[key] != null ? fileCache[key] : (fileCache[key] = new File(path).readAsStringSync())
       : new File(path).readAsStringSync();
-    render(str, options, fn);
+
+    return render(str, options);
+    
   } catch (err) {
-    fn(err);
+    return (new Completer()..completeError(err)).future;
   }
 }
 

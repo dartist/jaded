@@ -45,7 +45,7 @@ class Parser {
     var block = new Block() 
       ..line = line();
 
-    while ('eos' != log(peek().type)) {
+    while ('eos' != peek().type) {
       if ('newline' == peek().type) {
         advance();
       } else {

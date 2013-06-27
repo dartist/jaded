@@ -5,9 +5,13 @@ import "../lib/jaded.dart" as jade;
 
 main(){
   
-  renderEquals(String expected, String jade, [Map options, String reason]){    
-    var fn = compile(jade, options);    
-    return fn.then(expectAsync1((html){
+  renderEquals(String expected, String jade, [Map options, String reason]){
+    if (options == null)
+      options = {};
+//    options['debug'] = true;
+    RenderAsync fn = compile(jade, options);
+    return fn(options).then(expectAsync1((html){
+      fn({"__shutdown":true}); //close isolate after use
       expect(html, equals(expected), reason:reason);
     }));
   }
@@ -22,15 +26,19 @@ main(){
       case 0:
 //Uncomment group to run        
       case 1:
-//      case 2:
-//      case 3:
-//      case 4:
+      case 2:
+      case 3:
+      case 4:
         
         group(a, fn);
     }
   }
   
   group('jade', (){
+    
+//    test('should support tag text interpolation --', (){
+//      renderEquals('yo, jade is cool', '| yo, #{name} is cool\n', { 'name': 'jade' });
+//    });
 
     runGroup(1, '.compile()', (){
       test('should support doctypes', (){
@@ -952,26 +960,30 @@ main(){
       });
 
       test('should support .compile()', (){
-        jade.compile('p foo').then(expectAsync1((str){
+        jade.compile('p foo')().then(expectAsync1((str){
           
           expect(str, equals('<p>foo</p>'));
         }));
       });
 
       test('should support .compile() locals', (){
-        jade.compile('p= foo', { 'foo': 'bar' }).then(expectAsync1((str){          
+        var opts = { 'foo': 'bar' };
+        jade.compile('p= foo', opts)(opts).then(expectAsync1((str){          
           expect(str, equals('<p>bar</p>'));
         }));
       });
 
       test('should support .compile() no debug', (){
-        jade.compile('p foo\np #{bar}', {'compileDebug': false, 'bar': 'baz'}).then(expectAsync1((str){
-          expect(str, equals('<p>foo</p><p>baz</p>'));
-        }));
+        var opts = {'compileDebug': false, 'bar': 0};
+        jade.compile('p foo\np #{bar}', opts)({ 'bar': 'baz'})
+          .then(expectAsync1((str){
+            expect(str, equals('<p>foo</p><p>baz</p>'));
+          }));
       });
 
       test('should support .compile() no debug and global helpers', (){
-        jade.compile('p foo\np #{bar}', {'compileDebug': false, 'helpers': 'global', 'bar': 'baz'})
+        var opts = {'compileDebug': false, 'helpers': 0, 'bar': 0};
+        jade.compile('p foo\np #{bar}', opts)({'helpers': 'global', 'bar': 'baz'})
           .then(expectAsync1((str){
             expect(str, equals('<p>foo</p><p>baz</p>'));
           }));
@@ -995,13 +1007,14 @@ main(){
         renderEquals('<div>5</div>', 'a = 5      \ndiv= a');
         renderEquals('<div>5</div>', 'a = 5      ; \ndiv= a');
 
-        jade.compile('test = local\np=test', { 'local': 'bar' }).then(expectAsync1((str){
-          expect(str, equals('<p>bar</p>'));
-        }));
+        jade.compile('test = local\np=test', {'local':0})({ 'local': 'bar' })
+          .then(expectAsync1((str){
+            expect(str, equals('<p>bar</p>'));
+          }));
       });
 
       test('should be reasonably fast', (){
-        jade.compile(perfTest, {'report':[]}).then(expectAsync1((str){
+        jade.compile(perfTest, {'report':0})({'report':[]}).then(expectAsync1((str){
           assert(true);
         }));
       });

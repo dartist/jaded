@@ -89,13 +89,7 @@ class Attrs extends Node {
   
   getAttribute(name) {
     var attr = attrs.firstWhere((x) => x != null && x.name == name, orElse:() => null);
-    if (attr != null)
-    {
-      var ret = attr.val;
-      print(ret); //prints "text/template"
-      return ret; //returning 
-    }
-    return null; 
+    return attr != null ? attr.val : null; 
   }
   
 }
