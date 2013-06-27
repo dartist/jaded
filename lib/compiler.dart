@@ -25,16 +25,18 @@ class Compiler {
   String lastBufferedType;
   String lastBuffered;
   String bufferStartChar;
+  bool autoSemicolons;
     
   bool withinCase = false;
   
-  Compiler(this.node, {pretty:false,compileDebug:false,this.doctype:null,this.filename}) {
+  Compiler(this.node, {pretty:false,compileDebug:false,this.doctype:null,this.filename,this.autoSemicolons}) {
     hasCompiledDoctype = false;
     hasCompiledTag = false;
     pp = pretty;
     debug = compileDebug;
     indents = 0;
     parentIndents = 0;
+    if (autoSemicolons == null) autoSemicolons = true;
     if (doctype != null) setDoctype(doctype);
   }
   
@@ -285,7 +287,7 @@ class Compiler {
     }
 
     // pretty print
-    if (pp && !tag.isInline())
+    if (pp && !tag.isInline)
       prettyIndent(0, true);
 
     if ((selfClosing.contains(name) || tag.selfClosing) && !xml) {
@@ -312,7 +314,7 @@ class Compiler {
       visit(tag.block);
 
       // pretty print
-      if (pp && !tag.isInline() && 'pre' != tag.name && !tag.canInline())
+      if (pp && !tag.isInline && 'pre' != tag.name && !tag.canInline())
         prettyIndent(0, true);
 
       buffer('</');
@@ -363,7 +365,14 @@ class Compiler {
       if (code.escape) val = 'jade.escape($val)';
       this.bufferExpression(val);
     } else {
-      this.buf.add(code.val);
+      var stmt = code.val;
+      var cmp = code.val.trim();
+      if (autoSemicolons && !cmp.endsWith(";") && !cmp.endsWith("{")) {
+        var firstToken = code.val.trim().split(" ")[0];
+        if (firstToken == "var" || !isKeyword(firstToken))
+          stmt += ";";
+      }
+      this.buf.add(stmt);
     }
 
     // Block support
@@ -439,11 +448,13 @@ class Compiler {
   fakeEval(String str){
     var fakeJsonStr = str
       .replaceAll('"{','{')
-      .replaceAll('}"','}');
+      .replaceAll('}"','}')
+      .replaceAll(r"\#", "#");
     
     var sb = new StringBuffer();
     bool inQuotes = false;
     String lastQuote = null;
+    String lastChar = null;
     for (var c in fakeJsonStr.split(''))
     {
       if (!inQuotes)
@@ -456,7 +467,7 @@ class Compiler {
           if (c == "\"") sb.write('\\'); //escape quotes inside quotes
           sb.write(c);
           continue;
-        }          
+        }
       }
       if (c == '"' || c == "'") {
         inQuotes = !inQuotes;
@@ -464,6 +475,7 @@ class Compiler {
         c = '"';
       }
       sb.write(c);
+      lastChar = c;
     }
     fakeJsonStr = sb.toString();
     

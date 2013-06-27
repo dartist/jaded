@@ -9,6 +9,8 @@ abstract class Node {
   String filename;
   bool buffer = false; //?
   int line; //?
+  get isInline => false;
+  get isBlock => false;
 
   Node clone() => this;
 }
@@ -211,14 +213,14 @@ class Tag extends Attrs {
   bool canInline(){
     var nodes = block.nodes;
 
-    isInline(node){
+    isInline(Node node){
       // Recurse if the node is a block
-      if (node.isBlock) return node.nodes.every(isInline);
-      return node.isText || (node.isInline && node.isInline());
+      if (node.isBlock) return (node as Block).nodes.every(isInline);
+      return node.isText || (node.isInline);
     }
     
     // Empty tag
-    if (!nodes.length) return true;
+    if (nodes.length == 0) return true;
     
     // Text-only or inline-only tag
     if (1 == nodes.length) return isInline(nodes[0]);

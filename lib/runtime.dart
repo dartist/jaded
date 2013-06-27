@@ -4,6 +4,7 @@ import 'dart:json' as JSON;
 
 var interp;
 List<Debug> debug;
+List indent;
 
 class Debug {
   String filename;
@@ -62,12 +63,13 @@ String attrs(Map obj, [Map escaped]){
         buf.add("$key='${JSON.stringify(val)}'");
       } else if ('class' == key) {
         if ((val = escape(joinClasses(val))) != null) {
-          buf.add('$key="$val"');
+          if (val != "")
+            buf.add('$key="$val"');
         }
-      } else if (escaped != null && escaped[key] != null) {
+      } else if (escaped != null && escaped[key] != null && escaped[key] != false) {
         buf.add('$key="${escape(val)}"');
       } else {
-        buf.add('$key=$val"');
+        buf.add('$key="$val"');
       }
     }
   }
