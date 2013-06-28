@@ -61,6 +61,7 @@ parse(String str, [Map options])
     // Debug compiler
     if (debug) {
       print('\nCompiled Function:\n\n\033[90m%s\033[0m');
+      print(str);
       print(js.replaceAll(new RegExp("^",multiLine:true), '  '));
     }
     

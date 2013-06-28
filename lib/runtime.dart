@@ -83,6 +83,14 @@ escape(html) => "$html"
   .replaceAll(">", '&gt;')
   .replaceAll('"', '&quot;');
 
+class RuntimeError implements Error {
+  String path;
+  String message;
+  Error err;
+  
+  toString() => "$message $path";
+}
+
 rethrows(err, filename, lineno){
 //  print("filename: $filename, lineno: $lineno, err: $err");
   if (filename == null || filename == "undefined") throw err;
@@ -99,15 +107,20 @@ rethrows(err, filename, lineno){
   context = lines.sublist(start, end).map((String line){
     var curr = i++ + start + 1;
     return (curr == lineno ? '  > ' : '    ')
-      + curr
+      + "$curr"
       + '| '
       + line;
   }).join('\n');
 
+  var msg = err is NoSuchMethodError
+      ? err.toString()
+      : "line: ${err.line}, column ${err.column}: $err";
+  
   // Alter exception message
-  err.path = filename;
-  err.message = (filename != null ? filename : 'Jade') + ':' + lineno
-    + '\n' + context + '\n\n' + err.message;
-  throw err;
+  throw new RuntimeError()
+    ..err = err
+    ..path = filename
+    ..message = (filename != null ? filename : 'Jade') 
+      + ':$lineno\n$context\n\n$msg';
 }
 

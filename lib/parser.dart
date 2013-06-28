@@ -11,6 +11,9 @@ class Parser {
   Map<String,Mixin> mixins = {};
   List contexts;
   Parser extending;
+  Parser _root;
+  Parser get root => (_root != null ? _root : this);
+  bool _hasWrittenVars = false;
   
   int _spaces;
     
@@ -19,6 +22,10 @@ class Parser {
     contexts = [this];
   }
 
+  Parser createParser(str, path, options) => 
+    new Parser(str, path, options)
+      .._root = root;
+  
   Parser context([Parser parser]){
     if (parser != null) {
       contexts.add(parser);
@@ -59,9 +66,15 @@ class Parser {
       context();
 
       // hoist mixins
-      for (var name in mixins)
+      for (var name in mixins.keys)
         ast.unshift(mixins[name]);
       return ast;
+    }
+
+    //DB: register all var declarations at the top
+    if (lexer.vars.length > 0 && !root._hasWrittenVars){
+      block.nodes.insert(0, new Code("var ${lexer.vars.join(', ')};"));
+      root._hasWrittenVars = true;
     }
 
     return block;
@@ -224,10 +237,10 @@ class Parser {
   
   Literal parseExtends(){
     var path = resolvePath(expect('extends').val.trim(), 'extends');
-    if ('.jade' != path.substr(-5)) path += '.jade';
+    if ('.jade' != path.substring(path.length-5)) path += '.jade';
 
     var str = new File(path).readAsStringSync();
-    var parser = new Parser(str, path, options);
+    var parser = createParser(str, path, options);
 
     parser.blocks = blocks;
     parser.contexts = contexts;
@@ -238,40 +251,41 @@ class Parser {
   }
   
   Block parseBlock(){
-    var block = expect('block');
-    var mode = block.mode;
-    var name = block.val.trim();
+    var _block = expect('block');
+    var mode = _block.mode;
+    var name = _block.val.trim();
 
-    block = 'indent' == peek().type
+    _block = 'indent' == peek().type
       ? block()
       : new Block(new Literal(''));
 
-    var prev = _or(blocks[name], () => {'prepended': [], 'appended': []});
+    Block prev = _or(blocks[name], () => new Block());
     if (prev.mode == 'replace') return blocks[name] = prev;
 
-    var allNodes = prev['prepended']
-      ..addAll(block.nodes)
+    var allNodes = prev.prepended
+      ..addAll(_block.nodes)
       ..addAll(prev.appended);
 
     switch (mode) {
       case 'append':
         prev.appended = prev.parser == this ?
-                        (prev.appended..addAll(block.nodes)) :
-                        (block.nodes..addAll(prev.appended));
+                        (prev.appended..addAll(_block.nodes)) :
+                        (_block.nodes..addAll(prev.appended));
         break;
       case 'prepend':
         prev.prepended = prev.parser == this ?
-                         (block.nodes.addAll(prev.prepended)) :
-                         (prev.prepended.addAll(block.nodes));
+                         (_block.nodes.addAll(prev.prepended)) :
+                         (prev.prepended.addAll(_block.nodes));
         break;
     }
-    block.nodes = allNodes;
-    block.appended = prev.appended;
-    block.prepended = prev.prepended;
-    block.mode = mode;
-    block.parser = this;
+    _block
+      ..nodes = allNodes
+      ..appended = prev.appended
+      ..prepended = prev.prepended
+      ..mode = mode
+      ..parser = this;
 
-    return blocks[name] = block;
+    return blocks[name] = _block;
   }
   
   Node parseInclude(){
@@ -283,11 +297,11 @@ class Parser {
     if ('.jade' != path.substring(path.length - 5, path.length)) {
       str = str.replaceAll(new RegExp(r"\r"), '');
       var ext = extname(path).substring(1);
-      if (filters.exists(ext)) str = filters(ext, str, { "filename": path });
+      if (filters.containsKey(ext)) str = filters(ext, str, { "filename": path });
       return new Literal(str);
     }
 
-    var parser = new Parser(str, path, options);
+    var parser = createParser(str, path, options);
     parser.blocks = merge({}, blocks);
 
     parser.mixins = mixins;

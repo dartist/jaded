@@ -19,7 +19,10 @@ abstract class Node {
 class Block extends Node {
   List<Node> nodes = [];
   bool isBlock = true;
-  bool mode = false;
+  String mode;
+  List prepended = [];
+  List appended = [];
+  Parser parser;
   
   Block([node]){
     if (node != null)
@@ -47,7 +50,7 @@ class Block extends Node {
     for (var node in nodes){
       if (node.yield) return node;
       else if (node.textOnly) continue;
-      else if (node.includeBlock) ret = node.includeBlock();
+      else if (node is Block) ret = node.includeBlock();
       else if (node.block != null && !node.block.isEmpty) ret = node.block.includeBlock();
       if (ret.yield) return ret;
     }
@@ -134,6 +137,8 @@ class Code extends Node {
     if (buffer == null)
       buffer = false;
   }
+  
+  toString() => val;
 }
 
 

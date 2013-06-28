@@ -7,12 +7,13 @@ dynamic filter(String name, String str, Map options){
   if (filters[name] is Function)
     res = filters[name](str, options);
   else if (transformers[name] != null){
-    var res = transformers[name].renderSync(str, options);
-    if (transformers[name].outputFormat == 'js') {
+    Transformer transformer = transformers[name];
+    res = transformer.renderSync(str, options);
+    if (transformer.outputFormat == 'js') {
       res = '<script type="text/javascript">\n' + res + '</script>';
-    } else if (transformers[name].outputFormat == 'css') {
+    } else if (transformer.outputFormat == 'css') {
       res = '<style type="text/css">' + res + '</style>';
-    } else if (transformers[name].outputFormat == 'xml') {
+    } else if (transformer.outputFormat == 'xml') {
       res = res.replaceAll("'", '&#39;');
     } 
   }

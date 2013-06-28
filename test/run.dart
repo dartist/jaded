@@ -18,17 +18,26 @@ renderEquals(String expected, String jade, [Map options, String reason]){
 }
 
 main(){
-
+  var missingFilters = [
+    'filters.coffeescript.jade',
+    'filters.less.jade',
+    'filters.markdown.jade',
+    'filters.stylus.jade',
+    'include-filter-stylus.jade',
+    'include-filter.jade', //markdown
+  ];
+  
   var cases = new Directory('cases').listSync()
     .map((FileSystemEntity fse) => fse.path)
-    .where((file) => file.contains('.jade'))
+    .where((file) => file.contains('.jade') 
+      && !missingFilters.any((x) => file.endsWith(x)))
     .map((file) => file.replaceAll('.jade', ''));
 
   print("cases: ${cases.length}");
   
   group("test cases", (){
     cases
-      .skip(16)
+      .skip(32)
       .take(1)
       .forEach((String file){
         print("testing $file...");

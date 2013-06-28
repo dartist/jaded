@@ -13,7 +13,9 @@ main(){
     return fn(options).then(expectAsync1((html){
       fn({"__shutdown":true}); //close isolate after use
       expect(html, equals(expected), reason:reason);
-    }));
+    })).catchError((err){
+      print("$err: in $jade");
+    });
   }
 
   String __dirname = ".";

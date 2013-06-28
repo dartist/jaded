@@ -32,6 +32,7 @@ class Lexer {
   List<int> indentStack = [];
   RegExp indentRe;
   bool pipeless = false;
+  List<String> vars = ['val']; 
   
   Lexer(this.str, [this.options]){
     if (options == null)
@@ -201,11 +202,22 @@ Default() => scan(new RegExp(r"^default *"), 'default');
 
 assignment() {
   List<String> captures;
-  if ((captures = exec(new RegExp(r"^(\w+) += *([^;\n]+)( *;? *)"), input)) != null) {
+  //DB original: ^(\w+) += *([^;\n]+)( *;? *)
+  if ((captures = exec(new RegExp(r"^(\w+) += *([^\n]+)( *;? *)"), input)) != null) { 
+//    print(captures.length > 1 ? captures : "none");
     consume(captures[0].length);
     var name = captures[1];
     var val = captures[2];
-    return tok('code', 'var $name = ($val);');
+    
+    val = val.replaceFirst(new RegExp(r"\s*;\s*$"), ''); //DB: remove trailing ';'
+//    if (existingVars.contains(name))
+//      return tok('code', '$name = ($val);'); //DB: only declare on first use
+//
+//    existingVars.add(name);
+    if (!vars.contains(name))
+      vars.add(name);
+    
+    return tok('code', '$name = ($val);');
   }
 }
 

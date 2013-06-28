@@ -8,16 +8,16 @@ ul
     li no users!
 
 
-users = [{ name: 'tobi', friends: ['loki'] }, { name: 'loki' }]
+users = [{ 'name': 'tobi', 'friends': ['loki'] }, { 'name': 'loki' }]
 
-if users
+if users.length > 0
   ul
     for user in users
-      li= user.name
+      li= user['name']
     else
       li no users!
 
-user = { name: 'tobi', age: 10 }
+user = { 'name': 'tobi', 'age': 10 }
 
 ul
   each val, key in user
@@ -39,8 +39,8 @@ ul
   - else
     li user has no details!
 
-user = Object.create(null)
-- user.name = 'tobi'
+user = {}
+- user['name'] = 'tobi'
 
 ul
   each val, key in user

@@ -43,7 +43,7 @@ class Compiler {
   String compile(){
     buf = [];
     if (pp) buf.add("jade.indent = [];");
-    lastBufferedIdx = -1;
+    lastBufferedIdx = -1;    
     visit(node);
     return buf.join('\n');
   }
@@ -56,7 +56,7 @@ class Compiler {
   
   void buffer(String str, [interpolate=false]) {
     if (interpolate) {
-      Match match = new RegExp(r"(\\)?([#!]){((?:.|\n)*)$").firstMatch(str);
+      Match match = str != null ? new RegExp(r"(\\)?([#!]){((?:.|\n)*)$").firstMatch(str) : null;
       if (match != null) {
         buffer(str.substring(0, match.start), false);
         if (match.group(1) != null) { // escape
@@ -198,8 +198,8 @@ class Compiler {
   }
   
   void visitDoctype([Doctype doctype]){
-    if (doctype != null && (doctype.val != null || doctype == null)) {
-      setDoctype(doctype.val != null ? doctype.val : 'default');
+    if (doctype != null && (doctype.val != null || this.doctype == null)) {
+      setDoctype(doctype.val != null && doctype.val != null ? doctype.val : 'default');
     }
 
     if (this.doctype != null) buffer(this.doctype);
@@ -324,11 +324,11 @@ class Compiler {
     indents--;
   }
   
-  void visitFilter(Filter filter){
-    var text = filter.block.nodes.map((node) => node.val).join('\n');
-    if (filter.attrs == null) filter.attrs = {};
-    filter.attrs['filename'] = filename;
-    this.buffer(filters(filter.name, text, filter.attrs), true);
+  void visitFilter(Filter nodeFilter){
+    var text = nodeFilter.block.nodes.map((node) => node.val).join('\n');
+    if (nodeFilter.attrs == null) nodeFilter.attrs = {};
+    nodeFilter.attrs['filename'] = filename;
+    this.buffer(filter(nodeFilter.name, text, nodeFilter.attrs), true);
   }
   
   visitText(Text text) => 
@@ -393,7 +393,7 @@ class Compiler {
       + '  if ($obj is Iterable) {\n');
 
     if (each.alternative != null) {
-      buf.add('  if ($obj.length) {');
+      buf.add('  if ($obj != null && !$obj.isEmpty) {');
     }
 
     buf.add(''
@@ -421,7 +421,7 @@ class Compiler {
 
     buf.add('    }\n');
     if (each.alternative != null) {
-      buf.add('    if ($l === 0) {');
+      buf.add('    if ($l == 0) {');
       visit(each.alternative);
       buf.add('    }');
     }
