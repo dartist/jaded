@@ -297,7 +297,7 @@ class Parser {
     if ('.jade' != path.substring(path.length - 5, path.length)) {
       str = str.replaceAll(new RegExp(r"\r"), '');
       var ext = extname(path).substring(1);
-      if (filters.containsKey(ext)) str = filters(ext, str, { "filename": path });
+      if (filterExists(ext)) str = filter(ext, str, { "filename": path });
       return new Literal(str);
     }
 
@@ -325,11 +325,11 @@ class Parser {
     var mixin = new Mixin(name, args, new Block(), true);
 
     tag(mixin);
-    if (mixin.code) {
+    if (mixin.code != null) {
       mixin.block.add(mixin.code);
       mixin.code = null;
     }
-    if (mixin.block.isEmpty()) mixin.block = null;
+    if (mixin.block.isEmpty) mixin.block = null;
     return mixin;
   }  
   

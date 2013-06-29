@@ -233,7 +233,7 @@ call(){
         var range = bracketExpression(captures[0].length - 1);
         if (!new RegExp(r"^ *[-\w]+ *=").hasMatch(range.src)) { // not attributes
           consume(range.end + 1);
-          _tok['args'] = range.src;
+          _tok.args = range.src;
         }
       } catch (ex) {
         //not a bracket expcetion, just unmatched open parens

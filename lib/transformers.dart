@@ -74,5 +74,30 @@ class CDataTransformer extends Transformer {
   }
 }
 
+class CssTransformer extends Transformer {
+  String name = 'css';
+  List engines = ['.']; // `.` means "no dependency"
+  String outputFormat = 'css';
+
+  sync(String str, Map options){
+    var ret = this.cache(options); 
+    return ret != null ? ret : this.cache(options, str);
+  }
+}
+
+class JsTransformer extends Transformer {
+  String name = 'js';
+  List engines = ['.']; // `.` means "no dependency"
+  String outputFormat = 'js';
+
+  sync(String str, Map options){
+    var ret = this.cache(options); 
+    return ret != null ? ret : this.cache(options, str);
+  }
+}
+
 var transformers = new Map<String,Transformer>()
-  ..['cdata'] = new CDataTransformer();
+  ..['cdata'] = new CDataTransformer()
+  ..['css'] = new CssTransformer()
+  ..['js'] = new JsTransformer();
+  

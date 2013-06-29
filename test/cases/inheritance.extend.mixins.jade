@@ -2,7 +2,7 @@
 extend auxiliary/layout
 
 mixin article(title)
-  if title
+  if title != null
     h1= title
   block
 

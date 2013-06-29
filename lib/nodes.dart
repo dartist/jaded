@@ -138,6 +138,8 @@ class Code extends Node {
       buffer = false;
   }
   
+  get isInline => val == "var val;"; //don't prevent var val; inline tags. 
+  
   toString() => val;
 }
 
@@ -183,11 +185,11 @@ class Literal extends Node {
 }
 
 
-class Mixin extends Attrs {
+class Mixin extends Tag {
   String name;
-  List args;
+  String args;
   Block block;
-  bool call;
+  bool call = false;
   List attrs = [];
   
   Mixin([this.name, this.args, this.block, this.call]);
@@ -242,6 +244,8 @@ class Tag extends Attrs {
     // Mixed tag
     return false;
   }
+  
+  toString() => "<$name${selfClosing ? '/' : '></$name>'}";
 }
 
 
@@ -253,4 +257,6 @@ class Text extends Node {
     if (line is String)
       this.val = line;
   }
+  
+  toString() => val;
 }

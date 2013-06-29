@@ -24,5 +24,5 @@ dynamic filter(String name, String str, Map options){
 }
 
 filterExists(String name, [String str, Map options]) =>
-  filters[name] is Function;
+  filters[name] is Function || transformers[name] != null;
 
