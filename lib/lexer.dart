@@ -297,7 +297,15 @@ code() {
     var flags = captures[1];
     var expr = captures[2];
     //DB: keep record of var references
-    if (flags == "="){
+    var varRegEx = new RegExp(r"^[A-Za-z_]+");
+    if (expr.startsWith("var ")){
+      expr = expr.substring("var ".length);
+      var ret = exec(varRegEx, expr);
+      if (ret != null){
+        if (!varDeclarations.contains(ret[0]))
+          varDeclarations.add(ret[0]);          
+      }
+    } else if (flags == "="){
       const int A = 65, Z = 90, a = 97, z = 122, _ = 95;
       var firstCode = expr.codeUnitAt(0);
       var isVar = (firstCode >= A && firstCode <= Z)
