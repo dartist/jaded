@@ -4,11 +4,11 @@ foo = 'bar'
 
 #{tag} value
 #{tag}(foo='bar') value
-#{foo ? 'a' : 'li'}(something) here
+#{foo != null ? 'a' : 'li'}(something) here
 
 mixin item(icon)
   li
-    if attributes.href
+    if attributes['href'] != null
       a(attributes)
         img.icon(src=icon)
         block

@@ -32,7 +32,8 @@ class Lexer {
   List<int> indentStack = [];
   RegExp indentRe;
   bool pipeless = false;
-  List<String> vars = ['val']; 
+  List<String> varDeclarations = ['val'];
+  List<String> varReferences = [];
   
   Lexer(this.str, [this.options]){
     if (options == null)
@@ -214,8 +215,8 @@ assignment() {
 //      return tok('code', '$name = ($val);'); //DB: only declare on first use
 //
 //    existingVars.add(name);
-    if (!vars.contains(name))
-      vars.add(name);
+    if (!varDeclarations.contains(name))
+      varDeclarations.add(name);
     
     return tok('code', '$name = ($val);');
   }
@@ -294,8 +295,19 @@ code() {
   if ((captures = exec(new RegExp(r"^(!?=|-)[ \t]*([^\n]+)"), input)) != null) {
     consume(captures[0].length);
     var flags = captures[1];
-    captures[1] = captures[2];
-    return tok('code', captures[1])
+    var expr = captures[2];
+    //DB: keep record of var references
+    if (flags == "="){
+      const int A = 65, Z = 90, a = 97, z = 122, _ = 95;
+      var firstCode = expr.codeUnitAt(0);
+      var isVar = (firstCode >= A && firstCode <= Z)
+          || (firstCode >= a && firstCode <= z)
+          || firstCode == _;
+      if (!varReferences.contains(expr) && isVar && !isKeyword(expr) && !new RegExp(r"[\.\[]").hasMatch(expr)
+          && expr != "null" && expr != "false" && expr != "true")
+        varReferences.add(expr);
+    }
+    return tok('code', expr)
       ..escape = flags.substring(0,1) == '='
       ..buffer = flags.substring(0,1) == '=' || (flags.length > 1 && flags.substring(1,2) == '=');
   }

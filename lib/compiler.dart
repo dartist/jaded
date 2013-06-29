@@ -217,7 +217,7 @@ class Compiler {
       if (pp) buf.add("jade.indent.add('${new List.filled(indents + 1, '').join('  ')}');");
       if (block != null || attrs.length > 0) {
 
-        buf.add(name + '({');
+        buf.add('$name({');
 
         if (block != null) {
           buf.add('"block": (){');
@@ -254,12 +254,12 @@ class Compiler {
         }
 
       } else {
-        buf.add(name + '($args);');
+        buf.add('$name(${args.isEmpty ? "{}" : "{},$args"});');
       }
       if (pp) buf.add("jade.indent.removeLast();");
-    } else {
+    } else {      
       buf
-       ..add('$name(self,$args){')
+       ..add('$name = (${args.isEmpty ? "self" : "self,[$args]"}){')
        ..add('var block = self["block"], attributes = self["attributes"], escaped = self["escaped"];')
        ..add('if (attributes == null) attributes = {};')
        ..add('if (escaped == null) escaped = {};');

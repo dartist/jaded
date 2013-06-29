@@ -66,7 +66,9 @@ parse(String str, [Map options])
     }
     
     var sb = new StringBuffer();
-    for (var key in options.keys){
+    var globalRefs = options.keys.toSet()
+        ..addAll(parser.undeclaredVarReferences());
+    for (var key in globalRefs){
       sb.write("var $key = locals['$key'];\n");
     }
     

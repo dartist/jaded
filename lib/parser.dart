@@ -26,6 +26,15 @@ class Parser {
     new Parser(str, path, options)
       .._root = root;
   
+  List<String> undeclaredVarReferences(){
+    var ret = [];
+    for (var ref in lexer.varReferences){
+      if (!lexer.varDeclarations.contains(ref))
+        ret.add(ref);
+    }      
+    return ret;
+  }
+  
   Parser context([Parser parser]){
     if (parser != null) {
       contexts.add(parser);
@@ -72,8 +81,8 @@ class Parser {
     }
 
     //DB: register all var declarations at the top
-    if (lexer.vars.length > 0 && !root._hasWrittenVars){
-      block.nodes.insert(0, new Code("var ${lexer.vars.join(', ')};"));
+    if (lexer.varDeclarations.length > 0 && !root._hasWrittenVars){
+      block.nodes.insert(0, new Code("var ${lexer.varDeclarations.join(', ')};"));
       root._hasWrittenVars = true;
     }
 
@@ -262,20 +271,20 @@ class Parser {
     Block prev = _or(blocks[name], () => new Block());
     if (prev.mode == 'replace') return blocks[name] = prev;
 
-    var allNodes = prev.prepended
+    var allNodes = prev.prepended.toList()
       ..addAll(_block.nodes)
       ..addAll(prev.appended);
 
     switch (mode) {
       case 'append':
         prev.appended = prev.parser == this ?
-                        (prev.appended..addAll(_block.nodes)) :
-                        (_block.nodes..addAll(prev.appended));
+                        (prev.appended.toList()..addAll(_block.nodes)) :
+                        (_block.nodes.toList()..addAll(prev.appended));
         break;
       case 'prepend':
         prev.prepended = prev.parser == this ?
-                         (_block.nodes.addAll(prev.prepended)) :
-                         (prev.prepended.addAll(_block.nodes));
+                         (_block.nodes.toList()..addAll(prev.prepended)) :
+                         (prev.prepended.toList()..addAll(_block.nodes));
         break;
     }
     _block
@@ -341,6 +350,11 @@ class Parser {
 
     // definition
     if ('indent' == peek().type) {
+      
+      //DB: mixins can be overwritten
+      if (!lexer.varDeclarations.contains(name + "_mixin"))   
+        lexer.varDeclarations.add(name + "_mixin");
+      
       mixin = new Mixin(name, args, block(), false);
       mixins[name] = mixin;
       return mixin;

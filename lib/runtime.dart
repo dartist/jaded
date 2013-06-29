@@ -17,7 +17,7 @@ nulls(val) => val != null && val != '';
 joinClasses(val) =>
   val is List ? val.map(joinClasses).where(nulls).join(' ') : val;
 
-merge(Map a, Map b) {
+merge(Map a, Map b, [escaped]) {
   var ac = a['class'];
   var bc = b['class'];
 

@@ -15,7 +15,7 @@ List<String> exec(RegExp regex, String str){
 _or(value, defaultFn()) =>
     value != null ? value : defaultFn(); 
 
-String _trimLeft(String str) => str.replaceFirst(new RegExp("^\s+"),"");
+String _trimLeft(String str) => str.replaceFirst(new RegExp(r"^\s+"),"");
 
 String _trimStart(String str, String start) {
   if (str.startsWith(start) && str.length > start.length) {

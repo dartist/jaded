@@ -13,6 +13,19 @@ abstract class Node {
   get isBlock => false;
 
   Node clone() => this;
+  
+  get label => "$runtimeType: ${block != null ? block.nodes.length: 0} blocks";
+  toString() => toDebugString(0);
+
+  toDebugString(int indent) {
+    var spaces = new List.filled(indent, '').join("  ");
+    var str = "$spaces$label";
+    if (block != null){
+      str += block.toDebugString(indent + 1);
+    }
+
+    return str;
+  }
 }
 
 
@@ -65,6 +78,20 @@ class Block extends Node {
     }
     return clone;
   }  
+
+  get label => "$runtimeType: ${nodes.length} nodes:";
+  toString() => toDebugString(0);
+  
+  toDebugString(int indent) {
+    var spaces = new List.filled(indent, '').join("  ");
+    var str = "$spaces$label";
+    for (var i=0; i<nodes.length; i++){
+      var node = nodes[i];
+      str += "\n$spaces  [$i] ${node.toDebugString(indent+1)}";
+    }
+    return str;
+    
+  }
 }
 
 
@@ -138,7 +165,7 @@ class Code extends Node {
       buffer = false;
   }
   
-  get isInline => val == "var val;"; //don't prevent var val; inline tags. 
+  get isInline => val == "$runtimeType: var val;"; //don't prevent var val; inline tags. 
   
   toString() => val;
 }
@@ -245,7 +272,7 @@ class Tag extends Attrs {
     return false;
   }
   
-  toString() => "<$name${selfClosing ? '/' : '></$name>'}";
+  get label => "$runtimeType: <$name${selfClosing ? '/' : '></$name>'}";
 }
 
 

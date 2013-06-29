@@ -1,11 +1,11 @@
 mixin centered(title)
-  div.centered(id=attributes.id)
-    - if (title)
-      h1(class=attributes.class)= title
+  div.centered(id=attributes['id'])
+    - if (title != null)
+      h1(class=attributes['class'])= title
     block
-    - if (attributes.href)
+    - if (attributes['href'] != null)
       .footer
-        a(href=attributes.href) Back
+        a(href=attributes['href']) Back
 
 mixin main(title)
   div.stretch
