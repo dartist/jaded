@@ -33,7 +33,7 @@ log(o){
 
 typedef Future<String> RenderAsync([Map locals]);
 
-parse(String str, [Map options])
+String parse(String str, [Map options])
 {
   if (options == null) options = {};
   
@@ -47,41 +47,45 @@ parse(String str, [Map options])
     
   // Parse
   var parser = new Parser(str, filename, options);
-//  try {
 
-    // Compile
-    var compiler = new Compiler(parser.parse(), 
-        filename:filename,
-        compileDebug:compileDebug,
-        pretty:pretty,
-        doctype:doctype);
-    
-    var js = compiler.compile();
+  // Compile
+  var compiler = new Compiler(parser.parse(), 
+      filename:filename,
+      compileDebug:compileDebug,
+      pretty:pretty,
+      doctype:doctype)
+    ..addVarReference = parser.lexer.addVarReference;
+  
+  var js = compiler.compile();
 
-    // Debug compiler
-    if (debug) {
-      print('\nCompiled Function:\n\n\033[90m%s\033[0m');
-      print(str);
-      print(js.replaceAll(new RegExp("^",multiLine:true), '  '));
-    }
+  // Debug compiler
+  if (debug) {
+    print('\nCompiled Function:\n\n\033[90m%s\033[0m');
+    print(str);
+    print(js.replaceAll(new RegExp("^",multiLine:true), '  '));
+  }
+  
+  //DB: Undeclared references are placeholders
+  var sb = new StringBuffer();
+  var globalRefs = options.keys.toSet()
+      ..addAll(parser.undeclaredVarReferences());
+  for (var key in globalRefs){
+    sb.write("var $key = locals['$key'];\n");
+  }
+  
+  //DB: write any var declarations at the top
+  if (!parser.varDeclarations.isEmpty)
+    sb.write("var ${(parser.varDeclarations).join(', ')};\n");
     
-    var sb = new StringBuffer();
-    var globalRefs = options.keys.toSet()
-        ..addAll(parser.undeclaredVarReferences());
-    for (var key in globalRefs){
-      sb.write("var $key = locals['$key'];\n");
-    }
-    
-    return '${sb.toString()}'
-      + 'var buf = [];\n'
-      + (self
-        ? 'var self = locals; if (self == null) self = {};\n' + js
-        : addWith('locals || {}', js, ['jade', 'buf'])) + ';'
-      + 'return buf.join("");';
-//  } catch (err) {
-//    parser = parser.context();
-//    jade.rethrows(err, parser.filename, parser.lexer.lineno);
-//  }
+  return """
+$sb
+var buf = [];
+var self = locals; 
+if (self == null) self = {};
+$js;
+return buf.join("");
+""";
+
 }
 
 stripBOM(String str) =>

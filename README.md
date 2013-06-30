@@ -1,31 +1,85 @@
 jaded
 =====
 
-Port of node.js [jade view engine](https://github.com/visionmedia/jade/) for Dart.
+Port of the excellent [Jade view engine](https://github.com/visionmedia/jade/) in Dart.
+
+Now feature complete with the original [jade view engine](https://github.com/visionmedia/jade/), 
+please refer to their [great documentation](https://github.com/visionmedia/jade#readme-contents) 
+to learn about Jade's features and syntax. 
+
+Although the aim was to have a high-fidelity port, the major syntactical difference compared with 
+the original Jade (in JavaScript) is that the compiler only emits and executes Dart code, so any 
+embedded code in views must be valid Dart (i.e. instead of JavaScript).
+
+## Public API
+
+```dart
+import jaded;
+
+// Compile a function
+var renderAsync = compile('string of jade', { //Compiler Defaults:    
+	bool pretty: false,
+	bool compileDebug: false,
+	String doctype:  null,
+	String filename: null, 
+	bool autoSemicolons: true
+});
+
+renderAsync(locals)
+  .then((html) => print(html));
+```
+
+### Options
+
+ - `locals`    Local variable object
+ - `filename`  Used in exceptions, and required when using includes
+ - `debug`     Outputs tokens and function body generated
+ - `compileDebug`  When `false` no debug instrumentation is compiled
+ - `pretty`    Add pretty-indentation whitespace to output _(false by default)_
+ - `autoSemicolons`  Auto add missing semicolons at the end of new lines _(true by default)_
 
 ### Current Status
 
-Still under development, but all the tests in 
-[jade.test.dart](https://github.com/dartist/jaded/blob/master/test/jade.test.dart) are now passing!
+All tests in 
+[jade.test.dart](https://github.com/dartist/jaded/blob/master/test/jade.test.dart) 
+are now passing.
 
-Some missing functionality includes delegation to 
-[node.js transformers](https://github.com/ForbesLindesay/transformers) which maintains a repository
-of code transformers available for different view engines in node.js.
+All integration test cases in 
+[/test/cases](https://github.com/dartist/jaded/tree/master/test/cases) 
+that doesn't make use of an external DSL library are passing, specifically:  
+
+    filters.coffeescript.jade
+    filters.less.jade
+    filters.markdown.jade
+    filters.stylus.jade
+    include-filter-stylus.jade
+    include-filter.jade  //markdown
+
+When they become available support for external Web DSL's can be added to
+[transformers.dart](https://github.com/dartist/jaded/blob/master/lib/transformers.dart)
+in the same way as done inside Jade's feature-rich 
+[transformers.js](https://github.com/ForbesLindesay/transformers/blob/master/lib/transformers.js).   
 
 ### Missing eval
 
-Jade relies on eval'ing code-gen to work which is a major limitation in Dart which lacks eval.     
-To get around the limitation we're currently writing the code-gen Dart wrapped in an Isolate 
-boilerplate out to a file then immediately reading it back in with spawnUri and invoking the 
+Jade relies on eval'ing code-gen to work which is a limitation in Dart that lacks `eval`.     
+To get around this, we're currently wrapping the code-gen Dart inside an Isolate and writing it 
+out to a file then immediately reading it back in with spawnUri and invoking the 
 new code asynchronously in the 
-[runCompiledDartInIsolate() method](https://github.com/dartist/jaded/blob/master/lib/jaded.dart#L110-L161). 
+[runCompiledDartInIsolate() method](https://github.com/dartist/jaded/blob/master/lib/jaded.dart#L120-L167). 
 
-Although this works, it forces us to have a nonideal async API to convert jade to html at runtime. 
-If Dart offers a sync API for evaluating Dart code we'll convert it back to a sync API.
+Although this works, it forces us to have an async API to convert jade to html at runtime. 
+When Dart offers a sync API for evaluating Dart code we'll convert it back to a sync API.
 
-Another option would be to use the jade view engine as a pre-processor generating all html views at
-build time we could preload in a cache avoiding compilation of jade views at runtime.
+## Future
 
+A pre-processor option to pre-generate all the html views at build time which will lets us 
+provide a synchronous API and preload views in a cache avoiding compilation of jade at runtime.
+
+Integrate jaded into the [Express](https://github.com/dartist/express) web framework as its 
+primary HTML View Engine. 
+
+-------
 
 ### Contributors
 

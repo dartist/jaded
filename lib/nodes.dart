@@ -165,8 +165,6 @@ class Code extends Node {
       buffer = false;
   }
   
-  get isInline => val == "$runtimeType: var val;"; //don't prevent var val; inline tags. 
-  
   toString() => val;
 }
 
@@ -249,7 +247,8 @@ class Tag extends Attrs {
 
     isInline(Node node){
       // Recurse if the node is a block
-      if (node.isBlock) return (node as Block).nodes.every(isInline);
+      if (node.isBlock) 
+        return (node as Block).nodes.every(isInline);      
       return node.isText || (node.isInline);
     }
     

@@ -25,8 +25,6 @@ main(){
     'filters.stylus.jade',
     'include-filter-stylus.jade',
     'include-filter.jade', //markdown
-    'include-only-text.jade',
-    'inheritance.extend.mixins.jade',
   ];
   
   var cases = new Directory('cases').listSync()
@@ -39,6 +37,7 @@ main(){
   
   group("test cases", (){
     cases
+//      .where((String file) => file.endsWith("each.else"))
 //      .skip(32)
 //      .take(1)
       .forEach((String file){

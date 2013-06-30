@@ -32,8 +32,18 @@ class Lexer {
   List<int> indentStack = [];
   RegExp indentRe;
   bool pipeless = false;
-  List<String> varDeclarations = ['val'];
+  List<String> varDeclarations = [];
   List<String> varReferences = [];
+  
+  void addVarDeclaration(String varName){
+    if (!varDeclarations.contains(varName))
+      varDeclarations.add(varName);
+  }
+  
+  void addVarReference(String varName){
+    if (!varReferences.contains(varName))
+      varReferences.add(varName);
+  }
   
   Lexer(this.str, [this.options]){
     if (options == null)
@@ -215,8 +225,10 @@ assignment() {
 //      return tok('code', '$name = ($val);'); //DB: only declare on first use
 //
 //    existingVars.add(name);
-    if (!varDeclarations.contains(name))
-      varDeclarations.add(name);
+    addVarDeclaration(name);
+    
+    if (_isVar(val))
+      addVarReference(val);
     
     return tok('code', '$name = ($val);');
   }
@@ -284,9 +296,14 @@ each() {
   List<String> captures;
   if ((captures = exec(new RegExp(r"^(?:- *)?(?:each|for) +([a-zA-Z_$][\w$]*)(?: *, *([a-zA-Z_$][\w$]*))? * in *([^\n]+)"), input)) != null) {
     consume(captures[0].length);
-    return tok('each', captures[1])
+    
+    var code = captures[3];
+    if (_isVar(code))
+      addVarReference(code);
+
+      return tok('each', captures[1])
       ..key = captures[2] == null || captures[2].isEmpty ? r'$index' : captures[2]
-      ..code = captures[3];
+      ..code = code;
   }
 }
 
@@ -301,19 +318,11 @@ code() {
     if (expr.startsWith("var ")){
       expr = expr.substring("var ".length);
       var ret = exec(varRegEx, expr);
-      if (ret != null){
-        if (!varDeclarations.contains(ret[0]))
-          varDeclarations.add(ret[0]);          
-      }
+      if (ret != null)
+        addVarDeclaration(ret[0]);      
     } else if (flags == "="){
-      const int A = 65, Z = 90, a = 97, z = 122, _ = 95;
-      var firstCode = expr.codeUnitAt(0);
-      var isVar = (firstCode >= A && firstCode <= Z)
-          || (firstCode >= a && firstCode <= z)
-          || firstCode == _;
-      if (!varReferences.contains(expr) && isVar && !isKeyword(expr) && !new RegExp(r"[\.\[]").hasMatch(expr)
-          && expr != "null" && expr != "false" && expr != "true")
-        varReferences.add(expr);
+      if (_isVar(expr))
+        addVarReference(expr);
     }
     return tok('code', expr)
       ..escape = flags.substring(0,1) == '='

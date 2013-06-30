@@ -13,7 +13,6 @@ class Parser {
   Parser extending;
   Parser _root;
   Parser get root => (_root != null ? _root : this);
-  bool _hasWrittenVars = false;
   
   int _spaces;
     
@@ -34,6 +33,9 @@ class Parser {
     }      
     return ret;
   }
+  
+  get varDeclarations => 
+    lexer.varDeclarations;
   
   Parser context([Parser parser]){
     if (parser != null) {
@@ -78,12 +80,6 @@ class Parser {
       for (var name in mixins.keys)
         ast.unshift(mixins[name]);
       return ast;
-    }
-
-    //DB: register all var declarations at the top
-    if (lexer.varDeclarations.length > 0 && !root._hasWrittenVars){
-      block.nodes.insert(0, new Code("var ${lexer.varDeclarations.join(', ')};"));
-      root._hasWrittenVars = true;
     }
 
     return block;
@@ -352,8 +348,7 @@ class Parser {
     if ('indent' == peek().type) {
       
       //DB: mixins can be overwritten
-      if (!lexer.varDeclarations.contains(name + "_mixin"))   
-        lexer.varDeclarations.add(name + "_mixin");
+      root.lexer.addVarDeclaration(name + "_mixin");
       
       mixin = new Mixin(name, args, block(), false);
       mixins[name] = mixin;

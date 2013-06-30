@@ -3,62 +3,518 @@ import '../lib/runtime.dart';
 import '../lib/runtime.dart' as jade;
 
 render(Map locals) { 
-  jade.debug = [new Debug(lineno: 1, filename: "cases/tag.interpolation.jade")];
+  jade.debug = [new Debug(lineno: 1, filename: null)];
 try {
-var filename = locals['filename'];
-var pretty = locals['pretty'];
-var basedir = locals['basedir'];
+var report = locals['report'];
+var chp, sec, page;
 var buf = [];
 var self = locals; if (self == null) self = {};
-jade.indent = [];
-var val, tag, foo, item_mixin;
-tag = ('p');
-foo = ('bar');
-buf.add("\n<" + (tag) + ">value</" + (tag) + ">\n<" + (tag) + " foo=\"bar\">value</" + (tag) + ">\n<" + (foo ? 'a' : 'li') + " something=\"something\">here</" + (foo ? 'a' : 'li') + ">");
-item_mixin = (self,[icon]){
-var block = self["block"], attributes = self["attributes"], escaped = self["escaped"];
-if (attributes == null) attributes = {};
-if (escaped == null) escaped = {};
-buf.add("\n");
-jade.indent.forEach((x) => buf.add(x));
-buf.add("<li>");
-if ( attributes.href != null)
+buf.add("<div class=\"data\"><ol id=\"contents\" class=\"sortable\">");
+// iterate report
+;((){
+  var $$obj = report;
+  if ($$obj is Iterable) {
+
+    for (var $index = 0, $$l = $$obj.length; $index < $$l; $index++) {
+      var item = $$obj[$index];
+
+if ( (item.parent != null))
 {
-buf.add("<a" + (jade.attrs(jade.merge({  }, attributes), jade.merge({}, escaped, true))) + "><img" + (jade.attrs({ 'src':(icon), "class": [('icon')] }, {"class":false,"src":true})) + "/>");
-jade.indent.add('    ');
-if (block != null) block();
-jade.indent.removeLast();
-buf.add("</a>");
-}
-else
+buf.add("<div><li" + (jade.attrs({ 'data-ref':(item.id), "class": [('chapter')] }, {"class":false,"data-ref":true})) + "><a" + (jade.attrs({ 'href':('/admin/report/detail/' + item.id) }, {"href":true})) + ">" + (jade.escape(null == (jade.interp = item.name) ? "" : jade.interp)) + "</a></li>");
+chp = item.id;
 {
-buf.add("<span" + (jade.attrs(jade.merge({  }, attributes), jade.merge({}, escaped, true))) + "><img" + (jade.attrs({ 'src':(icon), "class": [('icon')] }, {"class":false,"src":true})) + "/>");
-jade.indent.add('    ');
-if (block != null) block();
-jade.indent.removeLast();
-buf.add("</span>");
+buf.add("<ol class=\"sortable\">");
+// iterate report
+;((){
+  var $$obj = report;
+  if ($$obj is Iterable) {
+
+    for (var $index = 0, $$l = $$obj.length; $index < $$l; $index++) {
+      var item = $$obj[$index];
+
+if ( (item.parent == chp && item.type == 'section'))
+{
+buf.add("<div><li" + (jade.attrs({ 'data-ref':(item.id), "class": [('section')] }, {"class":false,"data-ref":true})) + "><a" + (jade.attrs({ 'href':('/admin/report/detail/' + item.id) }, {"href":true})) + ">" + (jade.escape(null == (jade.interp = item.name) ? "" : jade.interp)) + "</a></li>");
+sec = item.id;
+{
+buf.add("<ol class=\"sortable\">");
+// iterate report
+;((){
+  var $$obj = report;
+  if ($$obj is Iterable) {
+
+    for (var $index = 0, $$l = $$obj.length; $index < $$l; $index++) {
+      var item = $$obj[$index];
+
+if ( (item.parent == sec && item.type == 'page'))
+{
+buf.add("<div><li" + (jade.attrs({ 'data-ref':(item.id), "class": [('page')] }, {"class":false,"data-ref":true})) + "><a" + (jade.attrs({ 'href':('/admin/report/detail/' + item.id) }, {"href":true})) + ">" + (jade.escape(null == (jade.interp = item.name) ? "" : jade.interp)) + "</a></li>");
+page = item.id;
+{
+buf.add("<ol class=\"sortable\">");
+// iterate report
+;((){
+  var $$obj = report;
+  if ($$obj is Iterable) {
+
+    for (var $index = 0, $$l = $$obj.length; $index < $$l; $index++) {
+      var item = $$obj[$index];
+
+if ( (item.parent == page && item.type == 'subpage'))
+{
+buf.add("<div><li" + (jade.attrs({ 'data-ref':(item.id), "class": [('subpage')] }, {"class":false,"data-ref":true})) + "><a" + (jade.attrs({ 'href':('/admin/report/detail/' + item.id) }, {"href":true})) + ">" + (jade.escape(null == (jade.interp = item.name) ? "" : jade.interp)) + "</a></li></div>");
 }
-buf.add("\n");
-jade.indent.forEach((x) => buf.add(x));
-buf.add("</li>");
-};
-buf.add("\n<ul>");
-jade.indent.add('  ');
-item_mixin({
-"block": (){
-buf.add("Contact");
+    }
+
+  } else {
+    var $$l = 0;
+    for (var $index in $$obj.keys) {
+      $$l++;      var item = $$obj[$index];
+
+if ( (item.parent == page && item.type == 'subpage'))
+{
+buf.add("<div><li" + (jade.attrs({ 'data-ref':(item.id), "class": [('subpage')] }, {"class":false,"data-ref":true})) + "><a" + (jade.attrs({ 'href':('/admin/report/detail/' + item.id) }, {"href":true})) + ">" + (jade.escape(null == (jade.interp = item.name) ? "" : jade.interp)) + "</a></li></div>");
 }
-}, 'contact');
-jade.indent.removeLast();
-jade.indent.add('  ');
-item_mixin({
-"block": (){
-buf.add("Contact");
-},
-"attributes": {'href':('/contact')}, "escaped": {"href":true}
-});
-jade.indent.removeLast();
-buf.add("\n</ul>");;return buf.join("");
+    }
+
+  }
+})();
+
+buf.add("</ol>");
+}
+buf.add("</div>");
+}
+    }
+
+  } else {
+    var $$l = 0;
+    for (var $index in $$obj.keys) {
+      $$l++;      var item = $$obj[$index];
+
+if ( (item.parent == sec && item.type == 'page'))
+{
+buf.add("<div><li" + (jade.attrs({ 'data-ref':(item.id), "class": [('page')] }, {"class":false,"data-ref":true})) + "><a" + (jade.attrs({ 'href':('/admin/report/detail/' + item.id) }, {"href":true})) + ">" + (jade.escape(null == (jade.interp = item.name) ? "" : jade.interp)) + "</a></li>");
+page = item.id;
+{
+buf.add("<ol class=\"sortable\">");
+// iterate report
+;((){
+  var $$obj = report;
+  if ($$obj is Iterable) {
+
+    for (var $index = 0, $$l = $$obj.length; $index < $$l; $index++) {
+      var item = $$obj[$index];
+
+if ( (item.parent == page && item.type == 'subpage'))
+{
+buf.add("<div><li" + (jade.attrs({ 'data-ref':(item.id), "class": [('subpage')] }, {"class":false,"data-ref":true})) + "><a" + (jade.attrs({ 'href':('/admin/report/detail/' + item.id) }, {"href":true})) + ">" + (jade.escape(null == (jade.interp = item.name) ? "" : jade.interp)) + "</a></li></div>");
+}
+    }
+
+  } else {
+    var $$l = 0;
+    for (var $index in $$obj.keys) {
+      $$l++;      var item = $$obj[$index];
+
+if ( (item.parent == page && item.type == 'subpage'))
+{
+buf.add("<div><li" + (jade.attrs({ 'data-ref':(item.id), "class": [('subpage')] }, {"class":false,"data-ref":true})) + "><a" + (jade.attrs({ 'href':('/admin/report/detail/' + item.id) }, {"href":true})) + ">" + (jade.escape(null == (jade.interp = item.name) ? "" : jade.interp)) + "</a></li></div>");
+}
+    }
+
+  }
+})();
+
+buf.add("</ol>");
+}
+buf.add("</div>");
+}
+    }
+
+  }
+})();
+
+buf.add("</ol>");
+}
+buf.add("</div>");
+}
+    }
+
+  } else {
+    var $$l = 0;
+    for (var $index in $$obj.keys) {
+      $$l++;      var item = $$obj[$index];
+
+if ( (item.parent == chp && item.type == 'section'))
+{
+buf.add("<div><li" + (jade.attrs({ 'data-ref':(item.id), "class": [('section')] }, {"class":false,"data-ref":true})) + "><a" + (jade.attrs({ 'href':('/admin/report/detail/' + item.id) }, {"href":true})) + ">" + (jade.escape(null == (jade.interp = item.name) ? "" : jade.interp)) + "</a></li>");
+sec = item.id;
+{
+buf.add("<ol class=\"sortable\">");
+// iterate report
+;((){
+  var $$obj = report;
+  if ($$obj is Iterable) {
+
+    for (var $index = 0, $$l = $$obj.length; $index < $$l; $index++) {
+      var item = $$obj[$index];
+
+if ( (item.parent == sec && item.type == 'page'))
+{
+buf.add("<div><li" + (jade.attrs({ 'data-ref':(item.id), "class": [('page')] }, {"class":false,"data-ref":true})) + "><a" + (jade.attrs({ 'href':('/admin/report/detail/' + item.id) }, {"href":true})) + ">" + (jade.escape(null == (jade.interp = item.name) ? "" : jade.interp)) + "</a></li>");
+page = item.id;
+{
+buf.add("<ol class=\"sortable\">");
+// iterate report
+;((){
+  var $$obj = report;
+  if ($$obj is Iterable) {
+
+    for (var $index = 0, $$l = $$obj.length; $index < $$l; $index++) {
+      var item = $$obj[$index];
+
+if ( (item.parent == page && item.type == 'subpage'))
+{
+buf.add("<div><li" + (jade.attrs({ 'data-ref':(item.id), "class": [('subpage')] }, {"class":false,"data-ref":true})) + "><a" + (jade.attrs({ 'href':('/admin/report/detail/' + item.id) }, {"href":true})) + ">" + (jade.escape(null == (jade.interp = item.name) ? "" : jade.interp)) + "</a></li></div>");
+}
+    }
+
+  } else {
+    var $$l = 0;
+    for (var $index in $$obj.keys) {
+      $$l++;      var item = $$obj[$index];
+
+if ( (item.parent == page && item.type == 'subpage'))
+{
+buf.add("<div><li" + (jade.attrs({ 'data-ref':(item.id), "class": [('subpage')] }, {"class":false,"data-ref":true})) + "><a" + (jade.attrs({ 'href':('/admin/report/detail/' + item.id) }, {"href":true})) + ">" + (jade.escape(null == (jade.interp = item.name) ? "" : jade.interp)) + "</a></li></div>");
+}
+    }
+
+  }
+})();
+
+buf.add("</ol>");
+}
+buf.add("</div>");
+}
+    }
+
+  } else {
+    var $$l = 0;
+    for (var $index in $$obj.keys) {
+      $$l++;      var item = $$obj[$index];
+
+if ( (item.parent == sec && item.type == 'page'))
+{
+buf.add("<div><li" + (jade.attrs({ 'data-ref':(item.id), "class": [('page')] }, {"class":false,"data-ref":true})) + "><a" + (jade.attrs({ 'href':('/admin/report/detail/' + item.id) }, {"href":true})) + ">" + (jade.escape(null == (jade.interp = item.name) ? "" : jade.interp)) + "</a></li>");
+page = item.id;
+{
+buf.add("<ol class=\"sortable\">");
+// iterate report
+;((){
+  var $$obj = report;
+  if ($$obj is Iterable) {
+
+    for (var $index = 0, $$l = $$obj.length; $index < $$l; $index++) {
+      var item = $$obj[$index];
+
+if ( (item.parent == page && item.type == 'subpage'))
+{
+buf.add("<div><li" + (jade.attrs({ 'data-ref':(item.id), "class": [('subpage')] }, {"class":false,"data-ref":true})) + "><a" + (jade.attrs({ 'href':('/admin/report/detail/' + item.id) }, {"href":true})) + ">" + (jade.escape(null == (jade.interp = item.name) ? "" : jade.interp)) + "</a></li></div>");
+}
+    }
+
+  } else {
+    var $$l = 0;
+    for (var $index in $$obj.keys) {
+      $$l++;      var item = $$obj[$index];
+
+if ( (item.parent == page && item.type == 'subpage'))
+{
+buf.add("<div><li" + (jade.attrs({ 'data-ref':(item.id), "class": [('subpage')] }, {"class":false,"data-ref":true})) + "><a" + (jade.attrs({ 'href':('/admin/report/detail/' + item.id) }, {"href":true})) + ">" + (jade.escape(null == (jade.interp = item.name) ? "" : jade.interp)) + "</a></li></div>");
+}
+    }
+
+  }
+})();
+
+buf.add("</ol>");
+}
+buf.add("</div>");
+}
+    }
+
+  }
+})();
+
+buf.add("</ol>");
+}
+buf.add("</div>");
+}
+    }
+
+  }
+})();
+
+buf.add("</ol>");
+}
+buf.add("</div>");
+}
+    }
+
+  } else {
+    var $$l = 0;
+    for (var $index in $$obj.keys) {
+      $$l++;      var item = $$obj[$index];
+
+if ( (item.parent != null))
+{
+buf.add("<div><li" + (jade.attrs({ 'data-ref':(item.id), "class": [('chapter')] }, {"class":false,"data-ref":true})) + "><a" + (jade.attrs({ 'href':('/admin/report/detail/' + item.id) }, {"href":true})) + ">" + (jade.escape(null == (jade.interp = item.name) ? "" : jade.interp)) + "</a></li>");
+chp = item.id;
+{
+buf.add("<ol class=\"sortable\">");
+// iterate report
+;((){
+  var $$obj = report;
+  if ($$obj is Iterable) {
+
+    for (var $index = 0, $$l = $$obj.length; $index < $$l; $index++) {
+      var item = $$obj[$index];
+
+if ( (item.parent == chp && item.type == 'section'))
+{
+buf.add("<div><li" + (jade.attrs({ 'data-ref':(item.id), "class": [('section')] }, {"class":false,"data-ref":true})) + "><a" + (jade.attrs({ 'href':('/admin/report/detail/' + item.id) }, {"href":true})) + ">" + (jade.escape(null == (jade.interp = item.name) ? "" : jade.interp)) + "</a></li>");
+sec = item.id;
+{
+buf.add("<ol class=\"sortable\">");
+// iterate report
+;((){
+  var $$obj = report;
+  if ($$obj is Iterable) {
+
+    for (var $index = 0, $$l = $$obj.length; $index < $$l; $index++) {
+      var item = $$obj[$index];
+
+if ( (item.parent == sec && item.type == 'page'))
+{
+buf.add("<div><li" + (jade.attrs({ 'data-ref':(item.id), "class": [('page')] }, {"class":false,"data-ref":true})) + "><a" + (jade.attrs({ 'href':('/admin/report/detail/' + item.id) }, {"href":true})) + ">" + (jade.escape(null == (jade.interp = item.name) ? "" : jade.interp)) + "</a></li>");
+page = item.id;
+{
+buf.add("<ol class=\"sortable\">");
+// iterate report
+;((){
+  var $$obj = report;
+  if ($$obj is Iterable) {
+
+    for (var $index = 0, $$l = $$obj.length; $index < $$l; $index++) {
+      var item = $$obj[$index];
+
+if ( (item.parent == page && item.type == 'subpage'))
+{
+buf.add("<div><li" + (jade.attrs({ 'data-ref':(item.id), "class": [('subpage')] }, {"class":false,"data-ref":true})) + "><a" + (jade.attrs({ 'href':('/admin/report/detail/' + item.id) }, {"href":true})) + ">" + (jade.escape(null == (jade.interp = item.name) ? "" : jade.interp)) + "</a></li></div>");
+}
+    }
+
+  } else {
+    var $$l = 0;
+    for (var $index in $$obj.keys) {
+      $$l++;      var item = $$obj[$index];
+
+if ( (item.parent == page && item.type == 'subpage'))
+{
+buf.add("<div><li" + (jade.attrs({ 'data-ref':(item.id), "class": [('subpage')] }, {"class":false,"data-ref":true})) + "><a" + (jade.attrs({ 'href':('/admin/report/detail/' + item.id) }, {"href":true})) + ">" + (jade.escape(null == (jade.interp = item.name) ? "" : jade.interp)) + "</a></li></div>");
+}
+    }
+
+  }
+})();
+
+buf.add("</ol>");
+}
+buf.add("</div>");
+}
+    }
+
+  } else {
+    var $$l = 0;
+    for (var $index in $$obj.keys) {
+      $$l++;      var item = $$obj[$index];
+
+if ( (item.parent == sec && item.type == 'page'))
+{
+buf.add("<div><li" + (jade.attrs({ 'data-ref':(item.id), "class": [('page')] }, {"class":false,"data-ref":true})) + "><a" + (jade.attrs({ 'href':('/admin/report/detail/' + item.id) }, {"href":true})) + ">" + (jade.escape(null == (jade.interp = item.name) ? "" : jade.interp)) + "</a></li>");
+page = item.id;
+{
+buf.add("<ol class=\"sortable\">");
+// iterate report
+;((){
+  var $$obj = report;
+  if ($$obj is Iterable) {
+
+    for (var $index = 0, $$l = $$obj.length; $index < $$l; $index++) {
+      var item = $$obj[$index];
+
+if ( (item.parent == page && item.type == 'subpage'))
+{
+buf.add("<div><li" + (jade.attrs({ 'data-ref':(item.id), "class": [('subpage')] }, {"class":false,"data-ref":true})) + "><a" + (jade.attrs({ 'href':('/admin/report/detail/' + item.id) }, {"href":true})) + ">" + (jade.escape(null == (jade.interp = item.name) ? "" : jade.interp)) + "</a></li></div>");
+}
+    }
+
+  } else {
+    var $$l = 0;
+    for (var $index in $$obj.keys) {
+      $$l++;      var item = $$obj[$index];
+
+if ( (item.parent == page && item.type == 'subpage'))
+{
+buf.add("<div><li" + (jade.attrs({ 'data-ref':(item.id), "class": [('subpage')] }, {"class":false,"data-ref":true})) + "><a" + (jade.attrs({ 'href':('/admin/report/detail/' + item.id) }, {"href":true})) + ">" + (jade.escape(null == (jade.interp = item.name) ? "" : jade.interp)) + "</a></li></div>");
+}
+    }
+
+  }
+})();
+
+buf.add("</ol>");
+}
+buf.add("</div>");
+}
+    }
+
+  }
+})();
+
+buf.add("</ol>");
+}
+buf.add("</div>");
+}
+    }
+
+  } else {
+    var $$l = 0;
+    for (var $index in $$obj.keys) {
+      $$l++;      var item = $$obj[$index];
+
+if ( (item.parent == chp && item.type == 'section'))
+{
+buf.add("<div><li" + (jade.attrs({ 'data-ref':(item.id), "class": [('section')] }, {"class":false,"data-ref":true})) + "><a" + (jade.attrs({ 'href':('/admin/report/detail/' + item.id) }, {"href":true})) + ">" + (jade.escape(null == (jade.interp = item.name) ? "" : jade.interp)) + "</a></li>");
+sec = item.id;
+{
+buf.add("<ol class=\"sortable\">");
+// iterate report
+;((){
+  var $$obj = report;
+  if ($$obj is Iterable) {
+
+    for (var $index = 0, $$l = $$obj.length; $index < $$l; $index++) {
+      var item = $$obj[$index];
+
+if ( (item.parent == sec && item.type == 'page'))
+{
+buf.add("<div><li" + (jade.attrs({ 'data-ref':(item.id), "class": [('page')] }, {"class":false,"data-ref":true})) + "><a" + (jade.attrs({ 'href':('/admin/report/detail/' + item.id) }, {"href":true})) + ">" + (jade.escape(null == (jade.interp = item.name) ? "" : jade.interp)) + "</a></li>");
+page = item.id;
+{
+buf.add("<ol class=\"sortable\">");
+// iterate report
+;((){
+  var $$obj = report;
+  if ($$obj is Iterable) {
+
+    for (var $index = 0, $$l = $$obj.length; $index < $$l; $index++) {
+      var item = $$obj[$index];
+
+if ( (item.parent == page && item.type == 'subpage'))
+{
+buf.add("<div><li" + (jade.attrs({ 'data-ref':(item.id), "class": [('subpage')] }, {"class":false,"data-ref":true})) + "><a" + (jade.attrs({ 'href':('/admin/report/detail/' + item.id) }, {"href":true})) + ">" + (jade.escape(null == (jade.interp = item.name) ? "" : jade.interp)) + "</a></li></div>");
+}
+    }
+
+  } else {
+    var $$l = 0;
+    for (var $index in $$obj.keys) {
+      $$l++;      var item = $$obj[$index];
+
+if ( (item.parent == page && item.type == 'subpage'))
+{
+buf.add("<div><li" + (jade.attrs({ 'data-ref':(item.id), "class": [('subpage')] }, {"class":false,"data-ref":true})) + "><a" + (jade.attrs({ 'href':('/admin/report/detail/' + item.id) }, {"href":true})) + ">" + (jade.escape(null == (jade.interp = item.name) ? "" : jade.interp)) + "</a></li></div>");
+}
+    }
+
+  }
+})();
+
+buf.add("</ol>");
+}
+buf.add("</div>");
+}
+    }
+
+  } else {
+    var $$l = 0;
+    for (var $index in $$obj.keys) {
+      $$l++;      var item = $$obj[$index];
+
+if ( (item.parent == sec && item.type == 'page'))
+{
+buf.add("<div><li" + (jade.attrs({ 'data-ref':(item.id), "class": [('page')] }, {"class":false,"data-ref":true})) + "><a" + (jade.attrs({ 'href':('/admin/report/detail/' + item.id) }, {"href":true})) + ">" + (jade.escape(null == (jade.interp = item.name) ? "" : jade.interp)) + "</a></li>");
+page = item.id;
+{
+buf.add("<ol class=\"sortable\">");
+// iterate report
+;((){
+  var $$obj = report;
+  if ($$obj is Iterable) {
+
+    for (var $index = 0, $$l = $$obj.length; $index < $$l; $index++) {
+      var item = $$obj[$index];
+
+if ( (item.parent == page && item.type == 'subpage'))
+{
+buf.add("<div><li" + (jade.attrs({ 'data-ref':(item.id), "class": [('subpage')] }, {"class":false,"data-ref":true})) + "><a" + (jade.attrs({ 'href':('/admin/report/detail/' + item.id) }, {"href":true})) + ">" + (jade.escape(null == (jade.interp = item.name) ? "" : jade.interp)) + "</a></li></div>");
+}
+    }
+
+  } else {
+    var $$l = 0;
+    for (var $index in $$obj.keys) {
+      $$l++;      var item = $$obj[$index];
+
+if ( (item.parent == page && item.type == 'subpage'))
+{
+buf.add("<div><li" + (jade.attrs({ 'data-ref':(item.id), "class": [('subpage')] }, {"class":false,"data-ref":true})) + "><a" + (jade.attrs({ 'href':('/admin/report/detail/' + item.id) }, {"href":true})) + ">" + (jade.escape(null == (jade.interp = item.name) ? "" : jade.interp)) + "</a></li></div>");
+}
+    }
+
+  }
+})();
+
+buf.add("</ol>");
+}
+buf.add("</div>");
+}
+    }
+
+  }
+})();
+
+buf.add("</ol>");
+}
+buf.add("</div>");
+}
+    }
+
+  }
+})();
+
+buf.add("</ol>");
+}
+buf.add("</div>");
+}
+    }
+
+  }
+})();
+
+buf.add("</ol></div>");;return buf.join("");
 } catch (err) {
   jade.rethrows(err, jade.debug[0].filename, jade.debug[0].lineno);
 } 

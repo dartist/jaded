@@ -26,18 +26,20 @@ class Compiler {
   String lastBuffered;
   String bufferStartChar;
   bool autoSemicolons;
+  Function addVarReference;
     
   bool withinCase = false;
   
-  Compiler(this.node, {pretty:false,compileDebug:false,this.doctype:null,this.filename,this.autoSemicolons}) {
+  Compiler(this.node, {pretty:false,compileDebug:false,this.doctype:null,this.filename,this.autoSemicolons:true}) {
     hasCompiledDoctype = false;
     hasCompiledTag = false;
     pp = pretty;
     debug = compileDebug;
     indents = 0;
     parentIndents = 0;
-    if (autoSemicolons == null) autoSemicolons = true;
     if (doctype != null) setDoctype(doctype);
+    addVarReference = (str) => 
+        throw new UnimplementedError("addVarReference");
   }
   
   String compile(){
@@ -71,6 +73,9 @@ class Compiler {
             rest = match.group(3);
             range = parseJSExpression(rest);
             code = ('!' == match.group(2) ? '' : 'jade.escape') + "((jade.interp = ${range.src}) == null ? '' : jade.interp)";
+            if (_isVar(range.src)){
+              addVarReference(range.src);
+            }
           } catch (ex) {
             throw ex;
             //didn't match, just as if escaped
@@ -315,8 +320,9 @@ class Compiler {
       visit(tag.block);
 
       // pretty print
-      if (pp && !tag.isInline && 'pre' != tag.name && !tag.canInline())
+      if (pp && !tag.isInline && 'pre' != tag.name && !tag.canInline()){
         prettyIndent(0, true);
+      }
 
       buffer('</');
       bufferName();
@@ -398,8 +404,8 @@ class Compiler {
     }
 
     buf.add(''
-      + '    for (var ' + each.key + ' = 0, $l = $obj.length; ' + each.key + ' < $l; ' + each.key + '++) {\n'
-      + '      var ' + each.val + ' = $obj[${each.key}];\n');
+      + '    for (var ${each.key} = 0, $l = $obj.length; ${each.key} < $l; ${each.key}++) {\n'
+      + '      var ${each.val} = $obj[${each.key}];\n');
 
     visit(each.block);
 
@@ -414,9 +420,9 @@ class Compiler {
     buf.add(''
       + '  } else {\n'
       + '    var $l = 0;\n'
-      + '    for (var ' + each.key + ' in $obj.keys) {\n'
+      + '    for (var ${each.key} in ${obj}.keys) {\n'
       + '      $l++;'
-      + '      var ' + each.val + ' = $obj[${each.key}];\n');
+      + '      var ${each.val} = $obj[${each.key}];\n');
 
     visit(each.block);
 
@@ -521,7 +527,9 @@ class Compiler {
 
   isConstant(val){
     // Check strings/literals
-    if (new RegExp(r'^ *("([^"\\]*(\\.[^"\\]*)*)"' + r"|'([^'\\]*(\\.[^'\\]*)*)'|true|false|null|undefined) *$", caseSensitive:false).hasMatch("$val"))
+    if (new RegExp(r'^ *("([^"\\]*(\\.[^"\\]*)*)"' 
+        + r"|'([^'\\]*(\\.[^'\\]*)*)'|true|false|null) *$", caseSensitive:false)
+      .hasMatch("$val"))
     return true;
 
     // Check numbers

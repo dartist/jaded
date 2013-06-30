@@ -1,5 +1,44 @@
 part of jaded;
 
+var transformers = new Map<String,Transformer>()
+..['cdata'] = new CDataTransformer()
+..['css'] = new CssTransformer()
+..['js'] = new JsTransformer();
+
+class CDataTransformer extends Transformer {
+  String name = 'cdata';
+  List engines = ['.']; // `.` means "no dependency"
+  String outputFormat = 'xml';
+  
+  sync(String str, Map options){
+    var ret = this.cache(options); 
+    return ret != null ? ret : this.cache(options, '<![CDATA[\n$str\n]]>');
+  }
+}
+
+class CssTransformer extends Transformer {
+  String name = 'css';
+  List engines = ['.']; // `.` means "no dependency"
+  String outputFormat = 'css';
+
+  sync(String str, Map options){
+    var ret = this.cache(options); 
+    return ret != null ? ret : this.cache(options, str);
+  }
+}
+
+class JsTransformer extends Transformer {
+  String name = 'js';
+  List engines = ['.']; // `.` means "no dependency"
+  String outputFormat = 'js';
+
+  sync(String str, Map options){
+    var ret = this.cache(options); 
+    return ret != null ? ret : this.cache(options, str);
+  }
+}
+
+
 abstract class Transformer {
   String outputFormat;
   String name;
@@ -63,41 +102,3 @@ abstract class Transformer {
   }   
 }
 
-class CDataTransformer extends Transformer {
-  String name = 'cdata';
-  List engines = ['.']; // `.` means "no dependency"
-  String outputFormat = 'xml';
-  
-  sync(String str, Map options){
-    var ret = this.cache(options); 
-    return ret != null ? ret : this.cache(options, '<![CDATA[\n$str\n]]>');
-  }
-}
-
-class CssTransformer extends Transformer {
-  String name = 'css';
-  List engines = ['.']; // `.` means "no dependency"
-  String outputFormat = 'css';
-
-  sync(String str, Map options){
-    var ret = this.cache(options); 
-    return ret != null ? ret : this.cache(options, str);
-  }
-}
-
-class JsTransformer extends Transformer {
-  String name = 'js';
-  List engines = ['.']; // `.` means "no dependency"
-  String outputFormat = 'js';
-
-  sync(String str, Map options){
-    var ret = this.cache(options); 
-    return ret != null ? ret : this.cache(options, str);
-  }
-}
-
-var transformers = new Map<String,Transformer>()
-  ..['cdata'] = new CDataTransformer()
-  ..['css'] = new CssTransformer()
-  ..['js'] = new JsTransformer();
-  

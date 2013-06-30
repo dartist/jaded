@@ -11,6 +11,11 @@ List<String> exec(RegExp regex, String str){
   return m != null ? m.groups(new List.generate(m.groupCount + 1, (x) => x)) : null;
 }
     
+_isVar(String expr) {
+  var isVar = new RegExp(r"^[A-Za-z_]+$").hasMatch(expr);
+  var isExpr = new RegExp(r"true|false|null").hasMatch(expr);
+  return isVar && !isExpr && !isKeyword(expr);
+}
 
 _or(value, defaultFn()) =>
     value != null ? value : defaultFn(); 
