@@ -4,7 +4,7 @@ jaded
 Port of the excellent [Jade view engine](https://github.com/visionmedia/jade/) in Dart.
 
 Now feature complete with the original jade view engine, please refer to their 
-[great documentation](https://github.com/visionmedia/jade#readme-contents) 
+[detailed documentation](https://github.com/visionmedia/jade#readme-contents) 
 to learn about Jade's features and syntax. 
 
 Although the aim was to have a high-fidelity port, the major syntactical difference compared with 
@@ -78,13 +78,13 @@ new code asynchronously in the
 Although this works, it forces us to have an async API to convert jade to html at runtime. 
 When Dart offers a sync API for evaluating Dart code we'll convert it back to a sync API.
 
-## Future
+## Roadmap
 
 A pre-processor option to pre-generate all the html views at build time which will lets us 
 provide a synchronous API and preload views in a cache avoiding compilation of jade at runtime.
 
-Integrate jaded into the [Express](https://github.com/dartist/express) web framework as its 
-primary HTML View Engine. 
+Integrate jaded into the [Dart Express](https://github.com/dartist/express) web framework as its 
+de-facto HTML View Engine. 
 
 -------
 
