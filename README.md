@@ -3,13 +3,20 @@ jaded
 
 Port of the excellent [Jade view engine](https://github.com/visionmedia/jade/) in Dart.
 
-Now feature complete with the original [jade view engine](https://github.com/visionmedia/jade/), 
-please refer to their [great documentation](https://github.com/visionmedia/jade#readme-contents) 
+Now feature complete with the original jade view engine, please refer to their 
+[great documentation](https://github.com/visionmedia/jade#readme-contents) 
 to learn about Jade's features and syntax. 
 
 Although the aim was to have a high-fidelity port, the major syntactical difference compared with 
 the original Jade (in JavaScript) is that the compiler only emits and executes Dart code, so any 
 embedded code in views must be valid Dart (i.e. instead of JavaScript).
+
+## [Installing via Pub](http://pub.dartlang.org/packages/jaded)	
+
+Add this to your package's pubspec.yaml file:
+
+	dependencies:
+	  jaded: 0.1.0
 
 ## Public API
 
@@ -20,8 +27,8 @@ import jaded;
 var renderAsync = compile('string of jade', { //Compiler Defaults:    
 	bool pretty: false,
 	bool compileDebug: false,
-	String doctype:  null,
-	String filename: null, 
+	String doctype,
+	String filename, 
 	bool autoSemicolons: true
 });
 
@@ -66,7 +73,7 @@ Jade relies on eval'ing code-gen to work which is a limitation in Dart that lack
 To get around this, we're currently wrapping the code-gen Dart inside an Isolate and writing it 
 out to a file then immediately reading it back in with spawnUri and invoking the 
 new code asynchronously in the 
-[runCompiledDartInIsolate() method](https://github.com/dartist/jaded/blob/master/lib/jaded.dart#L120-L167). 
+[runCompiledDartInIsolate() method](https://github.com/dartist/jaded/blob/master/lib/jaded.dart#L124-L171). 
 
 Although this works, it forces us to have an async API to convert jade to html at runtime. 
 When Dart offers a sync API for evaluating Dart code we'll convert it back to a sync API.
