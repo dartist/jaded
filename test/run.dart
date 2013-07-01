@@ -1,8 +1,8 @@
 import "package:unittest/unittest.dart";
 import "dart:io";
 import "dart:json" as JSON;
-import "../lib/jaded.dart";
-import "../lib/jaded.dart" as jade;
+import "package:jaded/jaded.dart";
+import "package:jaded/jaded.dart" as jade;
 
 
 // test cases
@@ -37,9 +37,7 @@ main(){
   
   group("test cases", (){
     cases
-//      .where((String file) => file.endsWith("each.else"))
-//      .skip(32)
-//      .take(1)
+//      .where((String file) => file.endsWith("include-filter.jade"))
       .forEach((String file){
         print("testing $file...");
         

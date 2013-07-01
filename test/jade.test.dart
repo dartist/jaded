@@ -1,7 +1,7 @@
 import "package:unittest/unittest.dart";
 import "dart:io";
-import "../lib/jaded.dart";
-import "../lib/jaded.dart" as jade;
+import "package:jaded/jaded.dart";
+import "package:jaded/jaded.dart" as jade;
 
 main(){
   

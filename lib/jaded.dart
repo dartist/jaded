@@ -7,7 +7,7 @@ import "dart:mirrors";
 import "dart:isolate";
 import "dart:async";
 import "package:character_parser/character_parser.dart";
-import "runtime.dart" as jade;
+import "package:jaded/runtime.dart" as jade;
 
 part "utils.dart";
 part "inline_tags.dart";
@@ -127,8 +127,8 @@ RenderAsync runCompiledDartInIsolate(String fn) {
   var isolateWrapper = 
 """
 import 'dart:isolate';
-import '../lib/runtime.dart';
-import '../lib/runtime.dart' as jade;
+import 'package:jaded/runtime.dart';
+import 'package:jaded/runtime.dart' as jade;
 
 render(Map locals) { 
   $fn 
