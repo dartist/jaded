@@ -16,7 +16,7 @@ embedded code in views must be valid Dart (i.e. instead of JavaScript).
 Add this to your package's pubspec.yaml file:
 
 	dependencies:
-	  jaded: 0.1.0
+	  jaded: 0.1.1
 
 ## Public API
 
