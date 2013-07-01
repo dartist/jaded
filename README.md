@@ -44,8 +44,12 @@ renderAsync(locals)
  - `compileDebug`  When `false` no debug instrumentation is compiled
  - `pretty`    Add pretty-indentation whitespace to output _(false by default)_
  - `autoSemicolons`  Auto add missing semicolons at the end of new lines _(true by default)_
+ 
+## Web Frameworks
 
-### Current Status
+ - jaded is the de-facto HTML View Engine in Dart [express](https://github.com/dartist/express) web framework. 
+
+## Current Status
 
 All tests in 
 [jade.test.dart](https://github.com/dartist/jaded/blob/master/test/jade.test.dart) 
@@ -82,9 +86,6 @@ When Dart offers a sync API for evaluating Dart code we'll convert it back to a 
 
 A pre-processor option to pre-generate all the html views at build time which will lets us 
 provide a synchronous API and preload views in a cache avoiding compilation of jade at runtime.
-
-Integrate jaded into the [Dart Express](https://github.com/dartist/express) web framework as its 
-de-facto HTML View Engine. 
 
 -------
 
