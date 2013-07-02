@@ -30,7 +30,13 @@ class Compiler {
     
   bool withinCase = false;
   
-  Compiler(this.node, {pretty:false,compileDebug:false,this.doctype:null,this.filename,this.autoSemicolons:true}) {
+  Compiler(this.node, {
+    bool pretty:false,
+    bool compileDebug:false,
+    this.doctype:null,
+    this.filename,
+    this.autoSemicolons:true}) 
+  {
     hasCompiledDoctype = false;
     hasCompiledTag = false;
     pp = pretty;

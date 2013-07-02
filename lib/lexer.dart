@@ -21,7 +21,6 @@ class Token {
 
 class Lexer {
   String str; 
-  Map options;
   
   String input;
   bool colons;
@@ -45,14 +44,8 @@ class Lexer {
       varReferences.add(varName);
   }
   
-  Lexer(this.str, [this.options]){
-    if (options == null)
-      options = {};
-    
+  Lexer(this.str, {this.colons:false}){
     input = str.replaceAll(new RegExp(r"\r\n|\r"), '\n');
-    colons = options['colons'];
-    if (colons == null) 
-      colons = false;    
   }
   
   Token tok(String type, [val]) => new Token(type, lineno, val);

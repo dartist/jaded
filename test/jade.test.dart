@@ -5,12 +5,19 @@ import "package:jaded/jaded.dart" as jade;
 
 main(){
   
-  renderEquals(String expected, String jade, [Map options, String reason]){
-    if (options == null)
-      options = {};
-//    options['debug'] = true;
-    RenderAsync fn = compile(jade, options);
-    return fn(options).then(expectAsync1((html){
+  renderEquals(String expected, String jade, {
+    Map locals,
+    bool debug:false,
+    bool colons:false,
+    String doctype,
+    String filename,
+    String reason
+  }){
+    if (locals == null)
+      locals = {};
+    RenderAsync fn = compile(jade, 
+        locals:locals, debug:debug, colons:colons, doctype:doctype, filename:filename);
+    return fn(locals).then(expectAsync1((html){
       fn({"__shutdown":true}); //close isolate after use
       expect(html, equals(expected), reason:reason);
     })).catchError((err){
@@ -50,10 +57,10 @@ main(){
         renderEquals('<!DOCTYPE html>', 'doctype html');
         renderEquals('<!DOCTYPE foo bar baz>', 'doctype foo bar baz');
         renderEquals('<!DOCTYPE html>', '!!! 5');
-        renderEquals('<!DOCTYPE html>', '!!!', { 'doctype':'html' });
-        renderEquals('<!DOCTYPE html>', '!!! html', { 'doctype':'xml' });
+        renderEquals('<!DOCTYPE html>', '!!!', doctype:'html');
+        renderEquals('<!DOCTYPE html>', '!!! html', doctype:'xml');
         renderEquals('<html></html>', 'html');
-        renderEquals('<!DOCTYPE html><html></html>', 'html', { 'doctype':'html' });
+        renderEquals('<!DOCTYPE html><html></html>', 'html', doctype:'html');
         renderEquals('<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML Basic 1.1//EN>', 'doctype html PUBLIC "-//W3C//DTD XHTML Basic 1.1//EN');
       });
 
@@ -104,7 +111,7 @@ main(){
                 '<img>'
                 ].join('');
 
-        renderEquals(html, str, { 'doctype':'html' });
+        renderEquals(html, str, doctype:'html');
       });
 
       test('should support single quotes', (){
@@ -132,12 +139,12 @@ main(){
                     '<img/>'
                     ].join('');
 
-        renderEquals(html, str, null, 'Test basic tags');
-        renderEquals('<fb:foo-bar></fb:foo-bar>', 'fb:foo-bar', null, 'Test hyphens');
-        renderEquals('<div class="something"></div>', 'div.something', null, 'Test classes');
-        renderEquals('<div id="something"></div>', 'div#something', null, 'Test ids');
-        renderEquals('<div class="something"></div>', '.something', null, 'Test stand-alone classes');
-        renderEquals('<div id="something"></div>', '#something', null, 'Test stand-alone ids');
+        renderEquals(html, str, reason:'Test basic tags');
+        renderEquals('<fb:foo-bar></fb:foo-bar>', 'fb:foo-bar', reason:'Test hyphens');
+        renderEquals('<div class="something"></div>', 'div.something', reason:'Test classes');
+        renderEquals('<div id="something"></div>', 'div#something', reason:'Test ids');
+        renderEquals('<div class="something"></div>', '.something', reason:'Test stand-alone classes');
+        renderEquals('<div id="something"></div>', '#something', reason:'Test stand-alone ids');
         renderEquals('<div id="foo" class="bar"></div>', '#foo.bar');
         renderEquals('<div id="foo" class="bar"></div>', '.bar#foo');
         renderEquals('<div id="foo" class="bar"></div>', 'div#foo(class="bar")');
@@ -354,12 +361,12 @@ main(){
       });
 
       test('should support tag text interpolation', (){
-        renderEquals('yo, jade is cool', '| yo, #{name} is cool\n', { 'name': 'jade' });
-        renderEquals('<p>yo, jade is cool</p>', 'p yo, #{name} is cool', { 'name': 'jade' });
-        renderEquals('yo, jade is cool', '| yo, #{name != null ? name : "jade"} is cool', { 'name': null });
-        renderEquals('yo, \'jade\' is cool', '| yo, #{name != null ? name : "\'jade\'"} is cool', { 'name': null });
-        renderEquals('foo &lt;script&gt; bar', '| foo #{code} bar', { 'code': '<script>' });
-        renderEquals('foo <script> bar', '| foo !{code} bar', { 'code': '<script>' });
+        renderEquals('yo, jade is cool', '| yo, #{name} is cool\n', locals:{ 'name': 'jade' });
+        renderEquals('<p>yo, jade is cool</p>', 'p yo, #{name} is cool', locals:{ 'name': 'jade' });
+        renderEquals('yo, jade is cool', '| yo, #{name != null ? name : "jade"} is cool', locals:{ 'name': null });
+        renderEquals('yo, \'jade\' is cool', '| yo, #{name != null ? name : "\'jade\'"} is cool', locals:{ 'name': null });
+        renderEquals('foo &lt;script&gt; bar', '| foo #{code} bar', locals:{ 'code': '<script>' });
+        renderEquals('foo <script> bar', '| foo !{code} bar', locals:{ 'code': '<script>' });
       });
 
       test('should support flexible indentation', (){
@@ -392,7 +399,7 @@ main(){
       });
 
       test('should support attrs', (){
-        renderEquals('<img src="&lt;script&gt;"/>', 'img(src="<script>")', null, 'Test attr escaping');
+        renderEquals('<img src="&lt;script&gt;"/>', 'img(src="<script>")', reason:'Test attr escaping');
 
         renderEquals('<a data-attr="bar"></a>', 'a(data-attr="bar")');
         renderEquals('<a data-attr="bar" data-attr-2="baz"></a>', 'a(data-attr="bar", data-attr-2="baz")');
@@ -400,16 +407,16 @@ main(){
         renderEquals('<a title="foo,bar"></a>', 'a(title= "foo,bar")');
         renderEquals('<a title="foo,bar" href="#"></a>', 'a(title= "foo,bar", href="#")');
 
-        renderEquals('<p class="foo"></p>', "p(class='foo')", null, 'Test single quoted attrs');
+        renderEquals('<p class="foo"></p>', "p(class='foo')", reason:'Test single quoted attrs');
         renderEquals('<input type="checkbox" checked="checked"/>', 'input( type="checkbox", checked )');
         renderEquals('<input type="checkbox" checked="checked"/>', 'input( type="checkbox", checked = true )');
         renderEquals('<input type="checkbox"/>', 'input(type="checkbox", checked= false)');
         renderEquals('<input type="checkbox"/>', 'input(type="checkbox", checked= null)');
 
-        renderEquals('<img src="/foo.png"/>', 'img(src="/foo.png")', null, 'Test attr =');
-        renderEquals('<img src="/foo.png"/>', 'img(src  =  "/foo.png")', null, 'Test attr = whitespace');
-        renderEquals('<img src="/foo.png"/>', 'img(src="/foo.png")', null, 'Test attr :');
-        renderEquals('<img src="/foo.png"/>', 'img(src  =  "/foo.png")', null, 'Test attr : whitespace');
+        renderEquals('<img src="/foo.png"/>', 'img(src="/foo.png")', reason:'Test attr =');
+        renderEquals('<img src="/foo.png"/>', 'img(src  =  "/foo.png")', reason:'Test attr = whitespace');
+        renderEquals('<img src="/foo.png"/>', 'img(src="/foo.png")', reason:'Test attr :');
+        renderEquals('<img src="/foo.png"/>', 'img(src  =  "/foo.png")', reason:'Test attr : whitespace');
 
         renderEquals('<img src="/foo.png" alt="just some foo"/>', 'img(src="/foo.png", alt="just some foo")');
         renderEquals('<img src="/foo.png" alt="just some foo"/>', 'img(src = "/foo.png", alt = "just some foo")');
@@ -417,11 +424,11 @@ main(){
         renderEquals('<p class="foo,bar,baz"></p>', 'p(class="foo,bar,baz")');
         renderEquals('<a href="http://google.com" title="Some : weird = title"></a>', 'a(href= "http://google.com", title= "Some : weird = title")');
         renderEquals('<label for="name"></label>', 'label(for="name")');
-        renderEquals('<meta name="viewport" content="width=device-width"/>', "meta(name= 'viewport', content='width=device-width')", null, 'Test attrs that contain attr separators');
+        renderEquals('<meta name="viewport" content="width=device-width"/>', "meta(name= 'viewport', content='width=device-width')", reason:'Test attrs that contain attr separators');
         renderEquals('<div style="color= white"></div>', "div(style='color= white')");
         renderEquals('<div style="color: white"></div>', "div(style='color: white')");
-        renderEquals('<p class="foo"></p>', "p('class'='foo')", null, 'Test keys with single quotes');
-        renderEquals('<p class="foo"></p>', "p(\"class\"= 'foo')", null, 'Test keys with double quotes');
+        renderEquals('<p class="foo"></p>', "p('class'='foo')", reason:'Test keys with single quotes');
+        renderEquals('<p class="foo"></p>', "p(\"class\"= 'foo')", reason:'Test keys with double quotes');
 
         renderEquals('<p data-lang="en"></p>', 'p(data-lang = "en")');
         renderEquals('<p data-dynamic="true"></p>', 'p("data-dynamic"= "true")');
@@ -460,7 +467,7 @@ main(){
     runGroup(3, '.compile()', (){
 
       test('should support colons option', (){
-        renderEquals('<a href="/bar"></a>', 'a(href:"/bar")', { "colons": true });
+        renderEquals('<a href="/bar"></a>', 'a(href:"/bar")', colons: true);
       });
 
       test('should support class attr array', (){
@@ -470,23 +477,23 @@ main(){
       test('should support attr interpolation', (){
         // Test single quote interpolation
         renderEquals('<a href="/user/12">tj</a>'
-            , "a(href='/user/#{id}') #{name}", { 'name': 'tj', 'id': 12 });
+            , "a(href='/user/#{id}') #{name}", locals:{ 'name': 'tj', 'id': 12 });
 
         renderEquals('<a href="/user/12-tj">tj</a>'
-            , "a(href='/user/#{id}-#{name}') #{name}", { 'name': 'tj', 'id': 12 });
+            , "a(href='/user/#{id}-#{name}') #{name}", locals:{ 'name': 'tj', 'id': 12 });
 
         renderEquals('<a href="/user/&lt;script&gt;">tj</a>'
-            , "a(href='/user/#{id}') #{name}", { 'name': 'tj', 'id': '<script>' });
+            , "a(href='/user/#{id}') #{name}", locals:{ 'name': 'tj', 'id': '<script>' });
 
         // Test double quote interpolation
         renderEquals('<a href="/user/13">ds</a>'
-            , 'a(href="/user/#{id}") #{name}', { 'name': 'ds', 'id': 13 });
+            , 'a(href="/user/#{id}") #{name}', locals:{ 'name': 'ds', 'id': 13 });
 
         renderEquals('<a href="/user/13-ds">ds</a>'
-            , 'a(href="/user/#{id}-#{name}") #{name}', { 'name': 'ds', 'id': 13 });
+            , 'a(href="/user/#{id}-#{name}") #{name}', locals:{ 'name': 'ds', 'id': 13 });
 
         renderEquals('<a href="/user/&lt;script&gt;">ds</a>'
-            , 'a(href="/user/#{id}") #{name}', { 'name': 'ds', 'id': '<script>' });
+            , 'a(href="/user/#{id}") #{name}', locals:{ 'name': 'ds', 'id': '<script>' });
       });
 
       test('should support attr parens', (){
@@ -494,24 +501,24 @@ main(){
       });
 
       test('should support code attrs', (){
-        renderEquals('<p></p>', 'p(id= name)', { 'name': null });
-        renderEquals('<p></p>', 'p(id= name)', { 'name': false });
-        renderEquals('<p id=""></p>', 'p(id= name)', { 'name': '' });
-        renderEquals('<p id="tj"></p>', 'p(id= name)', { 'name': 'tj' });
-        renderEquals('<p id="default"></p>', 'p(id= name != null ? name : "default")', { 'name': null });
-        renderEquals('<p id="something"></p>', "p(id= 'something')", { 'name': null });
-        renderEquals('<p id="something"></p>', "p(id = 'something')", { 'name': null });
+        renderEquals('<p></p>', 'p(id= name)', locals:{ 'name': null });
+        renderEquals('<p></p>', 'p(id= name)', locals:{ 'name': false });
+        renderEquals('<p id=""></p>', 'p(id= name)', locals:{ 'name': '' });
+        renderEquals('<p id="tj"></p>', 'p(id= name)', locals:{ 'name': 'tj' });
+        renderEquals('<p id="default"></p>', 'p(id= name != null ? name : "default")', locals:{ 'name': null });
+        renderEquals('<p id="something"></p>', "p(id= 'something')", locals:{ 'name': null });
+        renderEquals('<p id="something"></p>', "p(id = 'something')", locals:{ 'name': null });
         renderEquals('<p id="foo"></p>', "p(id= (true ? 'foo' : 'bar'))");
         renderEquals('<option value="">Foo</option>', "option(value='') Foo");
       });
 
       test('should support code attrs class', (){
-        renderEquals('<p class="tj"></p>', 'p(class= name)', { 'name': 'tj' });
-        renderEquals('<p class="tj"></p>', 'p( class= name )', { 'name': 'tj' });
-        renderEquals('<p class="default"></p>', 'p(class= name != null ? name : "default")', { 'name': null });
-        renderEquals('<p class="foo default"></p>', 'p.foo(class= name != null ? name : "default")', { 'name': null });
-        renderEquals('<p class="default foo"></p>', 'p(class= name != null ? name : "default").foo', { 'name': null });
-        renderEquals('<p id="default"></p>', 'p(id = name != null ? name : "default")', { 'name': null });
+        renderEquals('<p class="tj"></p>', 'p(class= name)', locals:{ 'name': 'tj' });
+        renderEquals('<p class="tj"></p>', 'p( class= name )', locals:{ 'name': 'tj' });
+        renderEquals('<p class="default"></p>', 'p(class= name != null ? name : "default")', locals:{ 'name': null });
+        renderEquals('<p class="foo default"></p>', 'p.foo(class= name != null ? name : "default")', locals:{ 'name': null });
+        renderEquals('<p class="default foo"></p>', 'p(class= name != null ? name : "default").foo', locals:{ 'name': null });
+        renderEquals('<p id="default"></p>', 'p(id = name != null ? name : "default")', locals:{ 'name': null });
         renderEquals('<p id="user-1"></p>', 'p(id = "user-" + 1.toString())');
         renderEquals('<p class="user-1"></p>', 'p(class = "user-" + 1.toString())');
       });
@@ -935,7 +942,7 @@ main(){
                    ].join('\n');
 
         renderEquals('<html><head><script src=\"/jquery.js\"></script><script src=\"/caustic.js\"></script><scripts src=\"/app.js\"></scripts></head></html>'
-            , str, { "filename": __dirname + '/jade.test.js' });
+            , str, filename: __dirname + '/jade.test.js');
       });
     });
     
@@ -947,18 +954,18 @@ main(){
       });
 
       test('should support .str, options, fn)', (){
-        jade.render('p #{foo}', { 'foo': 'bar' }).then(expectAsync1((str){
+        jade.render('p #{foo}', locals:{ 'foo': 'bar' }).then(expectAsync1((str){
           expect(str, equals('<p>bar</p>'));
         }));
       });
 
       test('should support .str, options, fn) cache', (){
-        jade.render('p bar', { 'cache': true }).catchError(expectAsync1((Error err){
+        jade.render('p bar', cache: true).catchError(expectAsync1((Error err){
           var msg = err.toString();
           assert(new RegExp(r'the "filename" option is required for caching').hasMatch(msg));
         }));
 
-        jade.render('p foo bar', { 'cache': true, 'filename': 'test' }).then(expectAsync1((str){
+        jade.render('p foo bar', cache:true, filename: 'test').then(expectAsync1((str){
           expect(str, equals('<p>foo bar</p>'));
         }));
       });
@@ -977,14 +984,14 @@ main(){
       });
 
       test('should support .compile() no debug', (){
-        jade.compile('p foo\np #{bar}', {'compileDebug': false})({ 'bar': 'baz'})
+        jade.compile('p foo\np #{bar}', compileDebug: false)({ 'bar': 'baz'})
           .then(expectAsync1((str){
             expect(str, equals('<p>foo</p><p>baz</p>'));
           }));
       });
 
       test('should support .compile() no debug and global helpers', (){
-        jade.compile('p foo\np #{bar}', {'compileDebug': false})({'helpers': 'global', 'bar': 'baz'})
+        jade.compile('p foo\np #{bar}', compileDebug: false)({'helpers': 'global', 'bar': 'baz'})
           .then(expectAsync1((str){
             expect(str, equals('<p>foo</p><p>baz</p>'));
           }));

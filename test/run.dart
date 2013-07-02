@@ -4,19 +4,6 @@ import "dart:json" as JSON;
 import "package:jaded/jaded.dart";
 import "package:jaded/jaded.dart" as jade;
 
-
-// test cases
-renderEquals(String expected, String jade, [Map options, String reason]){
-  if (options == null)
-    options = {};
-//    options['debug'] = true;
-  RenderAsync fn = compile(jade, options);
-  return fn(options).then(expectAsync1((html){
-    fn({"__shutdown":true}); //close isolate after use
-    expect(html, equals(expected), reason:reason);
-  }));
-}
-
 main(){
   var missingFilters = [
     'filters.coffeescript.jade',
@@ -37,7 +24,7 @@ main(){
   
   group("test cases", (){
     cases
-//      .where((String file) => file.endsWith("include-filter.jade"))
+//      .where((String file) => file.endsWith("include-extends-of-common-template"))
       .forEach((String file){
         print("testing $file...");
         
@@ -48,7 +35,7 @@ main(){
         var str = new File(path).readAsStringSync();
         var html = new File('$file.html').readAsStringSync()
           .trim().replaceAll(new RegExp(r"\r"), '');
-        RenderAsync fn = jade.compile(str, { 'filename': path, 'pretty': true, 'basedir': 'cases' });
+        RenderAsync fn = jade.compile(str, filename: path, pretty:true, basedir:'cases');
         
         fn({ 'title': 'Jade' }).then(expectAsync1((actual){
           
@@ -63,6 +50,5 @@ main(){
     });
 
   });
-
 
 }

@@ -22,7 +22,7 @@ part "lexer.dart";
 part "parser.dart";
 part "compiler.dart";
 
-Map<String,RenderAsync> cache = new Map<String,RenderAsync>();
+Map<String,RenderAsync> renderCache = new Map<String,RenderAsync>();
 Map<String,String> fileCache = new Map<String,String>();
 
 
@@ -33,20 +33,21 @@ log(o){
 
 typedef Future<String> RenderAsync([Map locals]);
 
-String parse(String str, [Map options])
+String parse(String str, {
+  Map locals,
+  String filename,
+  String basedir,
+  String doctype,
+  bool pretty:false,
+  bool compileDebug:false,
+  bool debug:false,
+  bool colons:false
+  })
 {
-  if (options == null) options = {};
+  if (locals == null) locals = {};
   
-  var filename = options['filename']; 
-  var pretty = _or(options['pretty'], () => false);
-  var compileDebug = _or(options['compileDebug'], () => false);
-  var debug = _or(options['debug'], () => false);
-  var doctype = options['doctype'];
-  var self = _or(options['self'], () => true);
-  var client = _or(options['client'], () => false);
-    
   // Parse
-  var parser = new Parser(str, filename, options);
+  var parser = new Parser(str, filename:filename, basedir:basedir, colons:colons);
 
   // Compile
   var compiler = new Compiler(parser.parse(), 
@@ -67,7 +68,7 @@ String parse(String str, [Map options])
   
   //DB: Undeclared references are placeholders
   var sb = new StringBuffer();
-  var globalRefs = options.keys.toSet()
+  var globalRefs = locals.keys.toSet()
       ..addAll(parser.undeclaredVarReferences());
   for (var key in globalRefs){
     sb.write("var $key = locals['$key'];\n");
@@ -94,29 +95,44 @@ stripBOM(String str) =>
     : str;
 
 int times = 0;
-RenderAsync compile(str, [Map options]){
-  if (options == null) options = {};
-  var filename = options['filename'] != null
-      ? JSON.stringify(options['filename'])
-      : 'null';
-  var fn;
+RenderAsync compile(str, {
+  Map locals,
+  String filename,
+  String basedir,
+  String doctype,
+  bool pretty:false,
+  bool compileDebug:false,
+  bool debug:false,
+  bool colons:false
+  })
+{
 
   str = stripBOM(str.toString());
 
-  if (options['compileDebug'] != false) {
+  var fn;
+  var fnBody = parse(str,
+      locals:locals, 
+      filename:filename, 
+      basedir:basedir,
+      doctype:doctype,
+      pretty:pretty,
+      compileDebug:compileDebug,
+      debug:debug,
+      colons:colons);
+  
+  if (compileDebug != false) {
+
     fn = [
-          'jade.debug = [new Debug(lineno: 1, filename: $filename)];'
+          'jade.debug = [new Debug(lineno: 1, filename: ${filename != null ? JSON.stringify(filename) : "null"})];'
           , 'try {'
-          , parse(str, options)
+          , fnBody
           , '} catch (err) {'
           , '  jade.rethrows(err, jade.debug[0].filename, jade.debug[0].lineno);'
           , '}'
           ].join('\n');
   } else {
-    fn = parse(str, options);
+    fn = fnBody;
   }
-//  print("\n\n#${++times}:");
-//  print(fn);
 
   return runCompiledDartInIsolate(fn); 
 }
@@ -170,81 +186,96 @@ main() {
   return renderAsync;
 }    
 
-Future<String> render(str, [Map options]){
-  if (options == null) options = {};
+Future<String> render(str, {
+  Map locals,
+  bool cache:false,
+  String filename,
+  String basedir,
+  String doctype,
+  bool pretty:false,
+  bool compileDebug:false,
+  bool debug:false,
+  bool colons:false
+  }){
 
   var completer = new Completer();
 
   // cache requires .filename
-  if (options['cache'] == true && options['filename'] == null) {
+  if (cache && filename == null) {
     completer.completeError(new ParseError('the "filename" option is required for caching'));
   }
   else
   {
-//  try {
+    RenderAsync compileFn() =>
+      compile(str,
+        locals:locals, 
+        filename:filename, 
+        basedir:basedir,
+        doctype:doctype,
+        pretty:pretty,
+        compileDebug:compileDebug,
+        debug:debug,
+        colons:colons);
     
-    var path = options['filename'];    
-    if (options['cache'] == true){
-      RenderAsync cachedTmpl = cache[path]; 
+    if (cache){
+      RenderAsync cachedTmpl = renderCache[filename]; 
       if (cachedTmpl != null){
-        cachedTmpl(options).then((html){
+        cachedTmpl(locals).then((html){
           completer.complete(html);
         });
       }
-      else {
-        RenderAsync renderAsync = compile(str, options);
-        renderAsync(options).then((html){
-          cache[path] = renderAsync;
+      else{
+        RenderAsync renderAsync = compileFn();
+        renderAsync(locals).then((html){
+          renderCache[filename] = renderAsync;
           completer.complete(html);
         }).catchError(completer.completeError);
       }
     }
-    else {
+    else{
       //One shot
-      var renderAsync = compile(str, options);
-      renderAsync(options).then((html){
+      var renderAsync = compileFn();
+      renderAsync(locals).then((html){
         completer.complete(html);        
         renderAsync({ "__shutdown": true }); //When not caching, close port after use.
       }).catchError(completer.completeError);
     }
-    
-//  } catch (err) {
-//    if (fn != null) fn(err);
-//    else {
-//      print(err);
-//      try {
-//        print({'line':err.line, 'column':err.column, 'url':err.url});
-//      } catch (ignore){}
-//      
-//      throw err;
-//    }
-//  }    
   }
   
   return completer.future;
 }
 
-Future<String> renderFile(String path, [Map options]){
+Future<String> renderFile(String path, {
+  Map locals,
+  bool cache:false,
+  String filename,
+  String basedir,
+  String doctype,
+  bool pretty:false,
+  bool compileDebug:false,
+  bool debug:false,
+  bool colons:false
+  })
+{
   var key = path + ':string';
 
-  if (options == null) options = {};
-
   try {
-    options['filename'] = path;
-    options['cache'] = true;
-
-    var str = options['cache']
+    var str = cache
       ? fileCache[key] != null ? fileCache[key] : (fileCache[key] = new File(path).readAsStringSync())
       : new File(path).readAsStringSync();
 
-    return render(str, options);
+    return render(str, 
+      locals:locals, 
+      cache:cache,
+      filename:filename, 
+      basedir:basedir,
+      doctype:doctype,
+      pretty:pretty,
+      compileDebug:compileDebug,
+      debug:debug,
+      colons:colons);
     
   } catch (err) {
     return (new Completer()..completeError(err)).future;
   }
-}
-
-String addWith(a, b, list){
-  throw new ParseError("Not Implemented");
-  //requires: https://github.com/ForbesLindesay/with/blob/master/index.js -dep uglifyjs
 }

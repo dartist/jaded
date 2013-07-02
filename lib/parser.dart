@@ -5,7 +5,8 @@ var textOnly = const ['script', 'style'];
 class Parser {
   String input;
   String filename;
-  Map options; //basedir
+  String basedir;
+  bool colons;
   Lexer lexer;
   Map<String,Block> blocks = {};
   Map<String,Mixin> mixins = {};
@@ -16,13 +17,13 @@ class Parser {
   
   int _spaces;
     
-  Parser([this.input, this.filename, this.options]){
-    lexer = new Lexer(input, options);
+  Parser(this.input, {this.filename, this.basedir, this.colons}){
+    lexer = new Lexer(input, colons:colons);
     contexts = [this];
   }
 
-  Parser createParser(str, path, options) => 
-    new Parser(str, path, options)
+  Parser createParser(str, {String filename, String basedir, bool colons:false}) => 
+    new Parser(str, filename:filename, basedir:basedir, colons:colons)
       .._root = root;
   
   List<String> undeclaredVarReferences(){
@@ -230,10 +231,10 @@ class Parser {
     if (path[0] != '/' && filename == null)
       throw new ParseError('the "filename" option is required to use "$purpose" with "relative" paths');
 
-    if (path[0] == '/' && options['basedir'] == null)
+    if (path[0] == '/' && basedir == null)
       throw new ParseError('the "basedir" option is required to use "$purpose" with "absolute" paths');
 
-    path = join([path[0] == '/' ? options['basedir'] : dirname(filename), path]);
+    path = join([path[0] == '/' ? basedir : dirname(filename), path]);
 
     if (basename(path).indexOf('.') == -1) path += '.jade';
 
@@ -245,7 +246,7 @@ class Parser {
     if ('.jade' != path.substring(path.length-5)) path += '.jade';
 
     var str = new File(path).readAsStringSync();
-    var parser = createParser(str, path, options);
+    var parser = createParser(str, filename:path, basedir:basedir, colons:colons);
 
     parser.blocks = blocks;
     parser.contexts = contexts;
@@ -306,7 +307,7 @@ class Parser {
       return new Literal(str);
     }
 
-    var parser = createParser(str, path, options);
+    var parser = createParser(str, filename:path, basedir:basedir, colons:colons);
     parser.blocks = merge({}, blocks);
 
     parser.mixins = mixins;
