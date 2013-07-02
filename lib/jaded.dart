@@ -147,10 +147,10 @@ main() {
 """;
 
   //Ugly hack: Write compiled dart out to a static file
-  new File("jaded-codegen.dart").writeAsStringSync(isolateWrapper);  
+  new File("jaded.views.dart").writeAsStringSync(isolateWrapper);  
   
   //Re-read back generated file inside an isolate
-  SendPort renderPort = spawnUri("jaded-codegen.dart");
+  SendPort renderPort = spawnUri("jaded.views.dart");
   
   RenderAsync renderAsync = ([Map locals]){
     if (locals == null)
