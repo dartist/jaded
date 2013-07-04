@@ -224,9 +224,6 @@ class Parser {
   }  
 
   String resolvePath(String path, purpose) {
-    var dirname = _dirname;
-    var basename = _basename;
-    var join = _join;
 
     if (path[0] != '/' && filename == null)
       throw new ParseError('the "filename" option is required to use "$purpose" with "relative" paths');
@@ -265,7 +262,7 @@ class Parser {
       ? block()
       : new Block(new Literal(''));
 
-    Block prev = _or(blocks[name], () => new Block());
+    Block prev = or(blocks[name], () => new Block());
     if (prev.mode == 'replace') return blocks[name] = prev;
 
     var allNodes = prev.prepended.toList()
@@ -296,7 +293,6 @@ class Parser {
   
   Node parseInclude(){
     var path = resolvePath(expect('include').val.trim(), 'include');
-    var extname = _extname;
 
     // non-jade
     var str = new File(path).readAsStringSync();

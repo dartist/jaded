@@ -4,11 +4,15 @@ packages:
   character_parser:
     description: character_parser
     source: hosted
-    version: "0.1.1"
+    version: "0.1.2"
   meta:
     description: meta
     source: hosted
     version: "0.5.20"
+  node_shims:
+    description: node_shims
+    source: hosted
+    version: "0.1.1"
   unittest:
     description: unittest
     source: hosted

@@ -57,7 +57,7 @@ class Compiler {
   }
   
   void setDoctype([String name="default"]){
-    doctype = _or(doctypes[name.toLowerCase()], () => '<!DOCTYPE $name>');
+    doctype = or(doctypes[name.toLowerCase()], '<!DOCTYPE $name>');
     terse = doctype.toLowerCase() == '<!doctype html>';
     xml = 0 == doctype.indexOf('<?xml');
   }
@@ -220,7 +220,7 @@ class Compiler {
 
   void visitMixin(Mixin mixin){
     var name = mixin.name.replaceAll("-", '_') + '_mixin';
-    String args = _or(mixin.args , () => '');
+    String args = or(mixin.args , '');
     Block block = mixin.block;
     List attrs = mixin.attrs;
 
@@ -373,7 +373,7 @@ class Compiler {
 
     // Buffer code
     if (code.buffer) {
-      var val = _trimLeft(code.val);
+      var val = trimLeft(code.val);
       val = 'null == (jade.interp = $val) ? "" : jade.interp';
       if (code.escape) val = 'jade.escape($val)';
       this.bufferExpression(val);

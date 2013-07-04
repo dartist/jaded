@@ -8,6 +8,8 @@ import "dart:isolate";
 import "dart:async";
 import "package:character_parser/character_parser.dart";
 import "package:jaded/runtime.dart" as jade;
+import "package:node_shims/path.dart";
+import "package:node_shims/js.dart";
 
 part "utils.dart";
 part "inline_tags.dart";

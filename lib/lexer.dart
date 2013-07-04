@@ -553,7 +553,7 @@ pipelessText() {
 Token colon() => 
     scan(new RegExp(r"^: *"), ':');
 
-Token advance() => _or(stashed(), () => next());
+Token advance() => or(stashed(), () => next());
 
 Token next(){
     var ret;
