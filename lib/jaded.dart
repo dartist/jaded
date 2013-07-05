@@ -96,7 +96,6 @@ stripBOM(String str) =>
     ? str.substring(1)
     : str;
 
-int times = 0;
 RenderAsync compile(str, {
   Map locals,
   String filename,
@@ -106,8 +105,31 @@ RenderAsync compile(str, {
   bool compileDebug:false,
   bool debug:false,
   bool colons:false
-  })
-{
+  }){
+
+  var fn = compileBody(str,       
+      locals:locals, 
+      filename:filename, 
+      basedir:basedir,
+      doctype:doctype,
+      pretty:pretty,
+      compileDebug:compileDebug,
+      debug:debug,
+      colons:colons);
+  
+  return runCompiledDartInIsolate(fn); 
+}
+
+String compileBody(str, {
+  Map locals,
+  String filename,
+  String basedir,
+  String doctype,
+  bool pretty:false,
+  bool compileDebug:false,
+  bool debug:false,
+  bool colons:false
+  }){
 
   str = stripBOM(str.toString());
 
@@ -122,21 +144,18 @@ RenderAsync compile(str, {
       debug:debug,
       colons:colons);
   
-  if (compileDebug != false) {
+  if (!compileDebug) 
+    return fnBody;
+  
+  return """
+jade.debug = [new Debug(lineno: 1, filename: ${filename != null ? JSON.stringify(filename) : "null"})];
+try {
+$fnBody
+} catch (err) {
+  jade.rethrows(err, jade.debug[0].filename, jade.debug[0].lineno);
+}
+""";
 
-    fn = [
-          'jade.debug = [new Debug(lineno: 1, filename: ${filename != null ? JSON.stringify(filename) : "null"})];'
-          , 'try {'
-          , fnBody
-          , '} catch (err) {'
-          , '  jade.rethrows(err, jade.debug[0].filename, jade.debug[0].lineno);'
-          , '}'
-          ].join('\n');
-  } else {
-    fn = fnBody;
-  }
-
-  return runCompiledDartInIsolate(fn); 
 }
 
 RenderAsync runCompiledDartInIsolate(String fn) {
@@ -280,4 +299,40 @@ Future<String> renderFile(String path, {
   } catch (err) {
     return (new Completer()..completeError(err)).future;
   }
+}
+
+String renderFiles(String basedir, Iterable<File> files, {templatesMapName:"JADE_TEMPLATES"}){
+  if (!_isVar(templatesMapName))
+    throw new ArgumentError("'$templatesMapName' is not a valid variable name");
+  
+  var sb = new StringBuffer()
+    ..writeln("import 'package:jaded/runtime.dart';")
+    ..writeln("import 'package:jaded/runtime.dart' as jade;")
+    ..writeln("Map<String,Function> $templatesMapName = {");
+  files.forEach((File x){
+    var str = x.readAsStringSync();
+    var fnBody = compileBody(str, filename:x.path, basedir:basedir);
+    sb.write("""
+'${x.path}': ([Map locals]){
+  if (locals == null) locals = {};
+  $fnBody
+},
+""");    
+  });
+  sb.writeln("};");
+
+  var tmpls = sb.toString();
+  return tmpls;
+}
+
+String renderDirectory(String basedir, {
+  templatesMapName:"JADE_TEMPLATES", 
+  ext:".jade", 
+  recursive:true, 
+  followLinks:false}){
+  var files = new Directory(basedir)
+    .listSync(recursive:recursive, followLinks:followLinks)
+    .where((FileSystemEntity x) => x is File && x.path.endsWith(ext));
+  
+  return renderFiles(basedir, files, templatesMapName:templatesMapName);
 }

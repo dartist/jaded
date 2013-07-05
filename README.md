@@ -20,26 +20,64 @@ Add this to your package's pubspec.yaml file:
 
 ## Public API
 
-```dart
-import jaded;
+### Compile a function at runtime
 
-// Compile a function
-var renderAsync = compile('string of jade', { //Compiler Defaults:    
-	bool pretty: false,
-	bool compileDebug: false,
-	String doctype,
-	String filename, 
-	bool autoSemicolons: true
+```dart
+import "package:jaded/jaded.dart" as jade;
+
+var renderAsync = jade.compile('string of jade', { //Optional Compiler Defaults:    
+  Map locals,
+  String filename,
+  String basedir,
+  String doctype,
+  bool pretty:false,
+  bool compileDebug:false,
+  bool debug:false,
+  bool colons:false
 });
 
 renderAsync(locals)
   .then((html) => print(html));
 ```
 
+### Compile a Directory 
+
+Add a pre-build step and use `renderDirectory` to statically compile all views to a single 
+`jade.views.dart` file containing a Map of all compiled Jade views, e.g:
+
+```dart
+import "dart:io";
+import "package:jaded/jaded.dart" as jade;
+
+var jadeTemplates = jade.renderDirectory('views');
+new File('views/jade.views.dart').writeAsString(jadeTemplates);
+```
+
+Writes to `jade.views.dart` snippet:
+
+```dart
+Map<String,Function> JADE_TEMPLATES = {
+  'views/index.jade': ([Map locals]){
+     ...
+  },
+  'views/page.jade': ([Map locals]){
+    ...
+  },
+}
+```
+
+Usage:
+
+```dart
+var render = JADE_TEMPLATES['views/index.jade'];
+var html = render({'title': 'Hello Jade!'});
+```
+
 ### Options
 
  - `locals`    Local variable object
  - `filename`  Used in exceptions, and required when using includes
+ - `basedir`   The basedir where views start from
  - `debug`     Outputs tokens and function body generated
  - `compileDebug`  When `false` no debug instrumentation is compiled
  - `pretty`    Add pretty-indentation whitespace to output _(false by default)_
@@ -47,7 +85,7 @@ renderAsync(locals)
  
 ## Web Frameworks
 
- - jaded is the de-facto HTML View Engine in Dart [express](https://github.com/dartist/express) web framework. 
+ - jaded is the de-facto HTML View Engine in [Dart express web framework](https://github.com/dartist/express). 
 
 ## Current Status
 
