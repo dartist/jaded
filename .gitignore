@@ -6,3 +6,7 @@ test/jaded-codegen2.dart
 test/jaded-codegen.dart
 
 test/jaded.views.dart
+
+test/files/jade.views.dart
+
+.buildlog

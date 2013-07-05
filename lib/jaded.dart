@@ -43,7 +43,8 @@ String parse(String str, {
   bool pretty:false,
   bool compileDebug:false,
   bool debug:false,
-  bool colons:false
+  bool colons:false,
+  bool autoSemicolons:true
   })
 {
   if (locals == null) locals = {};
@@ -56,7 +57,8 @@ String parse(String str, {
       filename:filename,
       compileDebug:compileDebug,
       pretty:pretty,
-      doctype:doctype)
+      doctype:doctype,
+      autoSemicolons:autoSemicolons)
     ..addVarReference = parser.lexer.addVarReference;
   
   var js = compiler.compile();
@@ -104,7 +106,8 @@ RenderAsync compile(str, {
   bool pretty:false,
   bool compileDebug:false,
   bool debug:false,
-  bool colons:false
+  bool colons:false,
+  bool autoSemicolons:true
   }){
 
   var fn = compileBody(str,       
@@ -115,7 +118,8 @@ RenderAsync compile(str, {
       pretty:pretty,
       compileDebug:compileDebug,
       debug:debug,
-      colons:colons);
+      colons:colons,
+      autoSemicolons:autoSemicolons);
   
   return runCompiledDartInIsolate(fn); 
 }
@@ -128,7 +132,8 @@ String compileBody(str, {
   bool pretty:false,
   bool compileDebug:false,
   bool debug:false,
-  bool colons:false
+  bool colons:false,
+  bool autoSemicolons:true
   }){
 
   str = stripBOM(str.toString());
@@ -142,7 +147,8 @@ String compileBody(str, {
       pretty:pretty,
       compileDebug:compileDebug,
       debug:debug,
-      colons:colons);
+      colons:colons,
+      autoSemicolons:autoSemicolons);
   
   if (!compileDebug) 
     return fnBody;
@@ -313,10 +319,10 @@ String renderFiles(String basedir, Iterable<File> files, {templatesMapName:"JADE
     var str = x.readAsStringSync();
     var fnBody = compileBody(str, filename:x.path, basedir:basedir);
     sb.write("""
-'${x.path}': ([Map locals]){
+'${x.path}': ([Map locals]){///jade-begin
   if (locals == null) locals = {};
   $fnBody
-},
+},///jade-end
 """);    
   });
   sb.writeln("};");

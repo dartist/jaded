@@ -16,7 +16,7 @@ embedded code in views must be valid Dart (i.e. instead of JavaScript).
 Add this to your package's pubspec.yaml file:
 
 	dependencies:
-	  jaded: 0.1.2
+	  jaded: 0.1.4
 
 ## Public API
 
@@ -33,7 +33,8 @@ var renderAsync = jade.compile('string of jade', { //Optional Compiler Defaults:
   bool pretty:false,
   bool compileDebug:false,
   bool debug:false,
-  bool colons:false
+  bool colons:false,
+  bool autoSemicolons:true  
 });
 
 renderAsync(locals)
@@ -42,25 +43,25 @@ renderAsync(locals)
 
 ### Compile a Directory 
 
-Add a pre-build step and use `renderDirectory` to statically compile all views to a single 
+Add a pre-build step and use `renderDirectory` to statically compile all views into a single 
 `jade.views.dart` file containing a Map of all compiled Jade views, e.g:
 
 ```dart
 import "dart:io";
 import "package:jaded/jaded.dart" as jade;
 
-var jadeTemplates = jade.renderDirectory('views');
-new File('views/jade.views.dart').writeAsString(jadeTemplates);
+var jadeTemplates = jade.renderDirectory('.');
+new File('jade.views.dart').writeAsString(jadeTemplates);
 ```
 
 Writes to `jade.views.dart` snippet:
 
 ```dart
 Map<String,Function> JADE_TEMPLATES = {
-  'views/index.jade': ([Map locals]){
+  './index.jade': ([Map locals]){
      ...
   },
-  'views/page.jade': ([Map locals]){
+  './dir/page.jade': ([Map locals]){
     ...
   },
 }
@@ -69,7 +70,9 @@ Map<String,Function> JADE_TEMPLATES = {
 Usage:
 
 ```dart
-var render = JADE_TEMPLATES['views/index.jade'];
+import "jade.views.dart";
+
+var render = JADE_TEMPLATES['./index.jade'];
 var html = render({'title': 'Hello Jade!'});
 ```
 
@@ -78,9 +81,10 @@ var html = render({'title': 'Hello Jade!'});
  - `locals`    Local variable object
  - `filename`  Used in exceptions, and required when using includes
  - `basedir`   The basedir where views start from
+ - `doctype`   What doctype to use
+ - `pretty`    Add pretty-indentation whitespace to output _(false by default)_
  - `debug`     Outputs tokens and function body generated
  - `compileDebug`  When `false` no debug instrumentation is compiled
- - `pretty`    Add pretty-indentation whitespace to output _(false by default)_
  - `autoSemicolons`  Auto add missing semicolons at the end of new lines _(true by default)_
  
 ## Web Frameworks
@@ -112,18 +116,22 @@ in the same way as done inside Jade's feature-rich
 ### Missing eval
 
 Jade relies on eval'ing code-gen to work which is a limitation in Dart that lacks `eval`.     
-To get around this, we're currently wrapping the code-gen Dart inside an Isolate and writing it 
-out to a file then immediately reading it back in with spawnUri and invoking the 
-new code asynchronously in the 
-[runCompiledDartInIsolate() method](https://github.com/dartist/jaded/blob/master/lib/jaded.dart#L124-L171). 
+To get around this when compiling on the fly, we're currently wrapping the code-gen Dart inside 
+an Isolate and writing it out to a file then immediately reading it back in with spawnUri and 
+invoking the new code asynchronously in the 
+[runCompiledDartInIsolate() method](https://github.com/dartist/jaded/blob/master/lib/jaded.dart#L161-L208). 
 
 Although this works, it forces us to have an async API to convert jade to html at runtime. 
 When Dart offers a sync API for evaluating Dart code we'll convert it back to a sync API.
 
-## Roadmap
+### Pre-compilation of views 
 
-A pre-processor option to pre-generate all the html views at build time which will lets us 
-provide a synchronous API and preload views in a cache avoiding compilation of jade at runtime.
+The alternative is to pre-compile all views with `renderDirectory()` out to a static file at design 
+time. The Dart Editor [build.dart build system](http://www.dartlang.org/tools/editor/build.html)
+can be used to trigger the background compilation of .jade views when it detects a .jade file 
+was saved or deleted. This is the approach the Express web framework takes with its 
+[express_build.dart](https://github.com/dartist/express/blob/master/lib/express_build.dart) helper.   
+
 
 -------
 
