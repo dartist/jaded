@@ -310,8 +310,18 @@ Future<String> renderFile(String path, {
 String renderFiles(String basedir, Iterable<File> files, {templatesMapName:"JADE_TEMPLATES"}){
   if (!_isVar(templatesMapName))
     throw new ArgumentError("'$templatesMapName' is not a valid variable name");
+
+  var libName = basedir == "."
+      ? Directory.current.path.split(Platform.pathSeparator).last
+      : basedir.split(Platform.pathSeparator).last;
+  
+  if (libName.length == 0) 
+    libName = "templates";
+  
+  libName = libName.replaceAll(new RegExp(r"[^a-zA-Z0-9_\$]"), "_");
   
   var sb = new StringBuffer()
+    ..writeln("library jade_$libName;")
     ..writeln("import 'package:jaded/runtime.dart';")
     ..writeln("import 'package:jaded/runtime.dart' as jade;")
     ..writeln("Map<String,Function> $templatesMapName = {");
