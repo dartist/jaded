@@ -94,7 +94,7 @@ class RuntimeError implements Error {
 }
 
 rethrows(err, filename, lineno){
-//  print("filename: $filename, lineno: $lineno, err: $err");
+  print("filename: $filename, lineno: $lineno, err: $err");
   if (filename == null || filename == "undefined") throw err;
 //  if (typeof window != 'undefined') throw err;
 

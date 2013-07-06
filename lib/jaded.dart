@@ -308,7 +308,7 @@ Future<String> renderFile(String path, {
 }
 
 String renderFiles(String basedir, Iterable<File> files, {templatesMapName:"JADE_TEMPLATES"}){
-  if (!_isVar(templatesMapName))
+  if (!_isVarExpr(templatesMapName))
     throw new ArgumentError("'$templatesMapName' is not a valid variable name");
 
   var libName = basedir == "."

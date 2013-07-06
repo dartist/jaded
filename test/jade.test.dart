@@ -38,6 +38,7 @@ main(){
       case 2:
       case 3:
       case 4:
+      case 5:
         
         group(a, fn);
     }
@@ -1026,6 +1027,34 @@ main(){
           assert(true);
         }));
       });
+    
     });
+    
+    runGroup(5, 'custom tests', (){
+      
+      test('should support deep-nested var references', (){
+        renderEquals('<p>/foo</p>', 'p #{request["path"]}', 
+            locals:{'request': {'path': '/foo'}});
+
+        renderEquals('<li>1</li><li>2</li><li>3</li>',
+            'each arg in request["args"]\n  li= arg',
+            locals:{'request': {'args': [1,2,3]}});
+
+//Can't pass non-primitave objects to isolates
+//      renderEquals('<p>/foo</p>','p #{foo.bar}', 
+//        locals:{'foo': new Foo()..bar="/foo"});
+
+//      renderEquals('<li>1</li>\n<li>2</li>\n<li>3</li>\n',
+//        'each arg in foo.args\n  li= arg',
+//         locals:{'foo': new Foo()..args=[1,2,3]});
+      });
+    });
+    
   });  
+}
+
+
+class Foo {
+  String bar;
+  List<String> args;
 }

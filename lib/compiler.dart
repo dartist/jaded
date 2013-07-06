@@ -79,7 +79,7 @@ class Compiler {
             rest = match.group(3);
             range = parseJSExpression(rest);
             code = ('!' == match.group(2) ? '' : 'jade.escape') + "((jade.interp = ${range.src}) == null ? '' : jade.interp)";
-            if (_isVar(range.src)){
+            if (_isVarExpr(range.src)){
               addVarReference(range.src);
             }
           } catch (ex) {

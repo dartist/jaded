@@ -39,7 +39,13 @@ class Lexer {
       varDeclarations.add(varName);
   }
   
-  void addVarReference(String varName){
+  void addVarReference(String varExpr){
+    //Register the root var reference
+    var pos = varExpr.indexOf('.');
+    if (pos == -1) pos = varExpr.indexOf('[');
+    if (pos == -1) pos = varExpr.length;
+    
+    var varName = varExpr.substring(0, pos);
     if (!varReferences.contains(varName))
       varReferences.add(varName);
   }
@@ -208,19 +214,16 @@ assignment() {
   List<String> captures;
   //DB original: ^(\w+) += *([^;\n]+)( *;? *)
   if ((captures = exec(new RegExp(r"^(\w+) += *([^\n]+)( *;? *)"), input)) != null) { 
-//    print(captures.length > 1 ? captures : "none");
+
     consume(captures[0].length);
     var name = captures[1];
     var val = captures[2];
     
     val = val.replaceFirst(new RegExp(r"\s*;\s*$"), ''); //DB: remove trailing ';'
-//    if (existingVars.contains(name))
-//      return tok('code', '$name = ($val);'); //DB: only declare on first use
-//
-//    existingVars.add(name);
+
     addVarDeclaration(name);
     
-    if (_isVar(val))
+    if (_isVarExpr(val))
       addVarReference(val);
     
     return tok('code', '$name = ($val);');
@@ -291,7 +294,7 @@ each() {
     consume(captures[0].length);
     
     var code = captures[3];
-    if (_isVar(code))
+    if (_isVarExpr(code))
       addVarReference(code);
 
       return tok('each', captures[1])
@@ -314,7 +317,7 @@ code() {
       if (ret != null)
         addVarDeclaration(ret[0]);      
     } else if (flags == "="){
-      if (_isVar(expr))
+      if (_isVarExpr(expr))
         addVarReference(expr);
     }
     return tok('code', expr)
