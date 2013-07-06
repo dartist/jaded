@@ -1,5 +1,5 @@
 name: jaded
-version: 0.1.5
+version: 0.1.6
 author: Demis Bellot<demis.bellot@gmail.com>
 description: Port of node.js popular Jade view engine for Dart.
 homepage: https://github.com/dartist/jaded
