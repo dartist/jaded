@@ -126,22 +126,13 @@ Or as an external include:
       body
         include some.md
 
-### Missing eval
 
-Jade relies on eval'ing code-gen to work which is a limitation in Dart that lacks `eval`.     
-To get around this when compiling on the fly, we're currently wrapping the code-gen Dart inside 
-an Isolate and writing it out to a file then immediately reading it back in with spawnUri and 
-invoking the new code asynchronously in the 
-[runCompiledDartInIsolate() method](https://github.com/dartist/jaded/blob/master/lib/jaded.dart#L161-L208). 
+### Pre-compilation of .jade templates 
 
-Although this works, it forces us to have an async API to convert jade to html at runtime. 
-When Dart offers a sync API for evaluating Dart code we'll convert it back to a sync API.
-
-### Pre-compilation of views 
-
-The alternative is to pre-compile all views with `renderDirectory()` out to a static file at design 
-time. The Dart Editor [build.dart build system](http://www.dartlang.org/tools/editor/build.html)
-can be used to trigger the background compilation of .jade views when it detects a .jade file 
+The recommended way to execute .jade templates is to pre-compile all views with `renderDirectory()` 
+out to a static file at design time. This can be automated using the 
+[Dart Editor build system](http://www.dartlang.org/tools/editor/build.html) `/build.dart` file,
+which can be used to trigger the background compilation of .jade views when it detects a .jade file 
 was saved or deleted. 
 
 This is the approach the [Dart Express Web Framework](https://github.com/dartist/express) takes 
@@ -149,6 +140,17 @@ with its [express_build.dart](https://github.com/dartist/express/blob/master/lib
 helper that gets triggered when a '.jade' file is touched will scan all directories for an empty 
 `jade.yaml` marker and recursively pre-compiles all .jade views in that directory into a single 
 `jade.views.dart` file.   
+
+### Compile and execute at runtime - Missing eval
+
+Jade relies on eval'ing code-gen to work which is a limitation in Dart that lacks `eval`.     
+To get around this when compiling on the fly, we're currently wrapping the code-gen Dart inside 
+an Isolate and writing it out to a file then immediately reading it back in with spawnUri and 
+invoking the new code asynchronously in the 
+[runCompiledDartInIsolate() method](https://github.com/dartist/jaded/blob/master/lib/jaded.dart#L168-L215). 
+
+Although this works, it forces us to have an async API to convert jade to html at runtime. 
+When Dart offers a sync API for evaluating Dart code we'll convert it back to a sync API.
 
 
 -------
