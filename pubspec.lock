@@ -5,6 +5,10 @@ packages:
     description: character_parser
     source: hosted
     version: "0.1.2"
+  markdown:
+    description: markdown
+    source: hosted
+    version: "0.5.0"
   meta:
     description: meta
     source: hosted

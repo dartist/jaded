@@ -3,7 +3,9 @@ part of jaded;
 var transformers = new Map<String,Transformer>()
 ..['cdata'] = new CDataTransformer()
 ..['css'] = new CssTransformer()
-..['js'] = new JsTransformer();
+..['js'] = new JsTransformer()
+..['md'] = new MarkdownTransformer()
+..['markdown'] = new MarkdownTransformer();
 
 class CDataTransformer extends Transformer {
   String name = 'cdata';
@@ -35,6 +37,17 @@ class JsTransformer extends Transformer {
   sync(String str, Map options){
     var ret = this.cache(options); 
     return ret != null ? ret : this.cache(options, str);
+  }
+}
+
+class MarkdownTransformer extends Transformer {
+  String name = 'markdown';
+  List engines = ['.']; // `.` means "no dependency"
+  String outputFormat = 'html';
+
+  sync(String str, Map options){
+    var ret = this.cache(options); 
+    return ret != null ? ret : this.cache(options, markdownToHtml(str));
   }
 }
 

@@ -16,30 +16,9 @@ embedded code in views must be valid Dart (i.e. instead of JavaScript).
 Add this to your package's pubspec.yaml file:
 
 	dependencies:
-	  jaded: 0.1.6
+	  jaded: 0.1.7
 
 ## Public API
-
-### Compile a function at runtime
-
-```dart
-import "package:jaded/jaded.dart" as jade;
-
-var renderAsync = jade.compile('string of jade', { //Optional Compiler Defaults:    
-  Map locals,
-  String filename,
-  String basedir,
-  String doctype,
-  bool pretty:false,
-  bool compileDebug:false,
-  bool debug:false,
-  bool colons:false,
-  bool autoSemicolons:true  
-});
-
-renderAsync(locals)
-  .then((html) => print(html));
-```
 
 ### Compile a Directory 
 
@@ -76,6 +55,27 @@ var render = JADE_TEMPLATES['./index.jade'];
 var html = render({'title': 'Hello Jade!'});
 ```
 
+### Compile a jade view at runtime
+
+```dart
+import "package:jaded/jaded.dart" as jade;
+
+var renderAsync = jade.compile('string of jade', { //Optional Compiler Defaults:    
+  Map locals,
+  String filename,
+  String basedir,
+  String doctype,
+  bool pretty:false,
+  bool compileDebug:false,
+  bool debug:false,
+  bool colons:false,
+  bool autoSemicolons:true  
+});
+
+renderAsync(locals)
+  .then((html) => print(html));
+```
+
 ### Options
 
  - `locals`    Local variable object
@@ -103,15 +103,28 @@ that doesn't make use of an external DSL library are passing, specifically:
 
     filters.coffeescript.jade
     filters.less.jade
-    filters.markdown.jade
     filters.stylus.jade
     include-filter-stylus.jade
-    include-filter.jade  //markdown
 
 When they become available support for external Web DSL's can be added to
 [transformers.dart](https://github.com/dartist/jaded/blob/master/lib/transformers.dart)
 in the same way as done inside Jade's feature-rich 
 [transformers.js](https://github.com/ForbesLindesay/transformers/blob/master/lib/transformers.js).   
+
+### Markdown filter
+
+We've added the markdown filter which lets you include markdown inline:
+
+    html
+      body
+        :markdown
+          This is _some_ awesome **markdown**
+
+Or as an external include:
+
+    html
+      body
+        include some.md
 
 ### Missing eval
 
@@ -129,8 +142,13 @@ When Dart offers a sync API for evaluating Dart code we'll convert it back to a 
 The alternative is to pre-compile all views with `renderDirectory()` out to a static file at design 
 time. The Dart Editor [build.dart build system](http://www.dartlang.org/tools/editor/build.html)
 can be used to trigger the background compilation of .jade views when it detects a .jade file 
-was saved or deleted. This is the approach the Express web framework takes with its 
-[express_build.dart](https://github.com/dartist/express/blob/master/lib/express_build.dart) helper.   
+was saved or deleted. 
+
+This is the approach the [Dart Express Web Framework](https://github.com/dartist/express) takes 
+with its [express_build.dart](https://github.com/dartist/express/blob/master/lib/express_build.dart) 
+helper that gets triggered when a '.jade' file is touched will scan all directories for an empty 
+`jade.yaml` marker and recursively pre-compiles all .jade views in that directory into a single 
+`jade.views.dart` file.   
 
 
 -------

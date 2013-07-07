@@ -8,10 +8,8 @@ main(){
   var missingFilters = [
     'filters.coffeescript.jade',
     'filters.less.jade',
-    'filters.markdown.jade',
     'filters.stylus.jade',
     'include-filter-stylus.jade',
-    'include-filter.jade', //markdown
   ];
   
   var cases = new Directory('cases').listSync()
@@ -24,7 +22,7 @@ main(){
   
   group("test cases", (){
     cases
-//      .where((String file) => file.endsWith("include-extends-of-common-template"))
+//      .where((String file) => file.endsWith("include-filter"))
       .forEach((String file){
         print("testing $file...");
         
