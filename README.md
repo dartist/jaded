@@ -3,8 +3,9 @@ jaded
 
 Port of the excellent [Jade view engine](https://github.com/visionmedia/jade/) in Dart.
 
-Now feature complete with the original jade view engine, please refer to their 
-[detailed documentation](https://github.com/visionmedia/jade#readme-contents) 
+Now feature complete with the original jade view engine, begin by taking the comprehensive tour on
+[learnjade.com](http://www.learnjade.com/) and refer to jade's 
+[detailed documentation](https://github.com/visionmedia/jade#readme-contents)  
 to learn about Jade's features and syntax. 
 
 Although the aim was to have a high-fidelity port, the major syntactical difference compared with 
