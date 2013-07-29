@@ -329,8 +329,9 @@ String renderFiles(String basedir, Iterable<File> files, {templatesMapName:"JADE
   files.forEach((File x){
     var str = x.readAsStringSync();
     var fnBody = compileBody(str, filename:x.path, basedir:basedir);
+    var pathWebStyle = x.path.replaceAll('\\','/'); 
     sb.write("""
-'${x.path}': ([Map locals]){///jade-begin
+'${pathWebStyle}': ([Map locals]){///jade-begin
   if (locals == null) locals = {};
   $fnBody
 },///jade-end
