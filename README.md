@@ -17,7 +17,7 @@ embedded code in views must be valid Dart (i.e. instead of JavaScript).
 Add this to your package's pubspec.yaml file:
 
 	dependencies:
-	  jaded: 0.1.7
+	  jaded: 0.1.8
 
 ## Public API
 
@@ -159,4 +159,6 @@ When Dart offers a sync API for evaluating Dart code we'll convert it back to a 
 ### Contributors
 
   - [mythz](https://github.com/mythz) (Demis Bellot)
+  - [MaxHorstmann](https://github.com/MaxHorstmann) (Max Horstmann)
+  
  
