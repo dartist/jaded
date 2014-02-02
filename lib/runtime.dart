@@ -85,7 +85,7 @@ escape(html) => "$html"
   .replaceAll(">", '&gt;')
   .replaceAll('"', '&quot;');
 
-class RuntimeError implements Error {
+class RuntimeError extends Error {
   String path;
   String message;
   Error err;

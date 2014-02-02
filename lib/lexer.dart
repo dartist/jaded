@@ -127,7 +127,7 @@ interpolation(){
     try {
       match = bracketExpression(1);
     } catch (ex) {
-      return;//not an interpolation expression, just an unmatched open interpolation
+      return null;//not an interpolation expression, just an unmatched open interpolation
     }
     consume(match.end + 1);
     return tok('interpolation', match.src);
@@ -544,7 +544,7 @@ indent(){
 
 pipelessText() {
   if (pipeless) {
-    if (input.startsWith('\n')) return;
+    if (input.startsWith('\n')) return null;
     var i = input.indexOf('\n');
     if (-1 == i) i = input.length;
     var str = input.substring(0, i);

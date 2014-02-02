@@ -177,35 +177,28 @@ render(Map locals) {
   $fn 
 }
 
-main() {
-  port.receive((Map msg, SendPort replyTo) {
-    if (msg["__shutdown"] == true) {
-      port.close();
-      return;
-    }
-    var html = render(msg);
+main(List args, SendPort replyTo) {
+  var html = render(args.first);
     replyTo.send(html.toString());
-  });
 }
 """;
 
-  //Ugly hack: Write compiled dart out to a static file
+  //Hack: Write compiled dart out to a static file
   new File("jaded.views.dart").writeAsStringSync(isolateWrapper);  
   
   //Re-read back generated file inside an isolate
-  SendPort renderPort = spawnUri("jaded.views.dart");
-  
-  RenderAsync renderAsync = ([Map locals]){
-    if (locals == null)
-      locals = {};
+  RenderAsync renderAsync = ([Map locals = const {}]){
+    ReceivePort rPort = new ReceivePort();
+    Isolate.spawnUri(new Uri.file("jaded.views.dart"), [locals], rPort.sendPort);
 
     var completer = new Completer();
     
     //Call generated code to get the results of render()
-    renderPort.call(locals).then((html) {
+    rPort.first.then((html){
       completer.complete(html);
-    })
-    .catchError(completer.completeError);
+    }, onError: (_) {
+      completer.completeError;
+    });
     
     return completer.future;    
   };
