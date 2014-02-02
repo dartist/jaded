@@ -2,7 +2,7 @@ library runtime;
 
 import 'dart:io';
 import 'dart:math' as Math;
-import 'dart:json' as JSON;
+import 'package:json/json.dart' as JSON;
 
 var interp;
 List<Debug> debug;

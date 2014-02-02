@@ -1,6 +1,6 @@
 import "package:unittest/unittest.dart";
 import "dart:io";
-import "dart:json" as JSON;
+import "package:json/json.dart" as JSON;
 import "package:jaded/jaded.dart";
 import "package:jaded/jaded.dart" as jade;
 
