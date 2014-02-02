@@ -27,15 +27,15 @@ class Compiler {
   String bufferStartChar;
   bool autoSemicolons;
   Function addVarReference;
-    
+
   bool withinCase = false;
-  
+
   Compiler(this.node, {
     bool pretty:false,
     bool compileDebug:false,
     this.doctype:null,
     this.filename,
-    this.autoSemicolons:true}) 
+    this.autoSemicolons:true})
   {
     hasCompiledDoctype = false;
     hasCompiledTag = false;
@@ -44,24 +44,24 @@ class Compiler {
     indents = 0;
     parentIndents = 0;
     if (doctype != null) setDoctype(doctype);
-    addVarReference = (str) => 
+    addVarReference = (str) =>
         throw new UnimplementedError("addVarReference");
   }
-  
+
   String compile(){
     buf = [];
     if (pp) buf.add("jade.indent = [];");
-    lastBufferedIdx = -1;    
+    lastBufferedIdx = -1;
     visit(node);
     return buf.join('\n');
   }
-  
+
   void setDoctype([String name="default"]){
     doctype = or(doctypes[name.toLowerCase()], '<!DOCTYPE $name>');
     terse = doctype.toLowerCase() == '<!doctype html>';
     xml = 0 == doctype.indexOf('<?xml');
   }
-  
+
   void buffer(String str, [interpolate=false]) {
     if (interpolate) {
       Match match = str != null ? new RegExp(r"(\\)?([#!]){((?:.|\n)*)$").firstMatch(str) : null;
@@ -132,10 +132,10 @@ class Compiler {
     buffer((newline ? '\n' : '') + new List.filled(indents + offset, '').join('  '));
     if (parentIndents > 0){
       buf.add("jade.indent.forEach((x) => buf.add(x));");
-    }      
+    }
   }
-  
-  void visit(Node node){    
+
+  void visit(Node node){
     if (debug) {
       var filename = node.filename != null ? JSON.stringify(node.filename) : 'jade.debug[0].filename';
       buf.add('jade.debug.insert(0, new Debug(lineno: ${node.line}, filename: $filename));');
@@ -152,7 +152,7 @@ class Compiler {
 
     if (debug) buf.add('jade.debug.removeAt(0);');
   }
-  
+
   visitNode(Node node){
     var name = MirrorSystem.getName(reflect(node).type.simpleName);
     var method = new Symbol('visit' + name);
@@ -164,7 +164,7 @@ class Compiler {
       return im.invoke(method, [node]);
     }
   }
-  
+
   void visitCase(Case node){
     var _ = withinCase;
     withinCase = true;
@@ -173,15 +173,15 @@ class Compiler {
     buf.add('}');
     withinCase = _;
   }
-  
+
   void visitWhen(When node){
     buf.add('default' == node.expr ? 'default:' : 'case ${node.expr}:');
     visit(node.block);
     buf.add('  break;');
   }
-  
+
   void visitLiteral(Literal node) => buffer(node.str);
-  
+
   void visitBlock(Block block){
     var len = block.nodes.length;
 
@@ -208,7 +208,7 @@ class Compiler {
         buffer('\n');
     }
   }
-  
+
   void visitDoctype([Doctype doctype]){
     if (doctype != null && (doctype.val != null || this.doctype == null)) {
       setDoctype(doctype.val != null && doctype.val != null ? doctype.val : 'default');
@@ -268,20 +268,20 @@ class Compiler {
         buf.add('$name(${args.isEmpty ? "{}" : "{},$args"});');
       }
       if (pp) buf.add("jade.indent.removeLast();");
-    } else {      
+    } else {
       buf
        ..add('$name = (${args.isEmpty ? "self" : "self,[$args]"}){')
        ..add('var block = self["block"], attributes = self["attributes"], escaped = self["escaped"];')
        ..add('if (attributes == null) attributes = {};')
        ..add('if (escaped == null) escaped = {};');
-      
+
       parentIndents++;
       visit(block);
       parentIndents--;
       buf.add('};');
     }
   }
-  
+
   void visitTag(Tag tag){
     indents++;
     var name = tag.name;
@@ -336,15 +336,15 @@ class Compiler {
     }
     indents--;
   }
-  
+
   void visitFilter(Filter nodeFilter){
     var text = nodeFilter.block.nodes.map((node) => node.val).join('\n');
     if (nodeFilter.attrs == null) nodeFilter.attrs = {};
     nodeFilter.attrs['filename'] = filename;
     this.buffer(filter(nodeFilter.name, text, nodeFilter.attrs), true);
   }
-  
-  visitText(Text text) => 
+
+  visitText(Text text) =>
     buffer(text.val, true);
 
   visitComment(Comment comment){
@@ -352,7 +352,7 @@ class Compiler {
     if (pp) prettyIndent(1, true);
     buffer('<!--${comment.val}-->');
   }
-  
+
   visitBlockComment(BlockComment comment){
     if (!comment.buffer) return;
     if (0 == comment.val.trim().indexOf('if')) {
@@ -365,7 +365,7 @@ class Compiler {
       buffer('-->');
     }
   }
-  
+
   visitCode(Code code){
     // Wrap code blocks with {}.
     // we only wrap unbuffered code blocks ATM
@@ -395,7 +395,7 @@ class Compiler {
       if (!code.buffer) this.buf.add('}');
     }
   }
-  
+
   visitEach(Each each){
     var obj = r"$$obj";
     var l = r"$$l";
@@ -440,16 +440,16 @@ class Compiler {
     }
     buf.add('  }\n})();\n'); //buf.add('  }\n}).call(this);\n');
   }
-  
+
   visitAttributes(List attrs){
     if (attrs.isEmpty) return; //DB: avoid eval with NO OPs
-    
+
     var val = this.attrs(attrs);
     if (val.inherits) {
       bufferExpression("jade.attrs(jade.merge({ ${val.buf} }, attributes), jade.merge(${val.escaped}, escaped, true))");
-    } else if (val.constant) { 
+    } else if (val.constant) {
       buffer(jade.attrs(fakeEval("{ ${val.buf} }"), JSON.parse(val.escaped)));
-      
+
 //      throw new ParseError("eval not supported");
 //      eval('var evalBuf={' + val.buf + '};');
 //      buffer(jade.attrs(evalBuf, JSON.parse(val.escaped)));
@@ -457,13 +457,13 @@ class Compiler {
       this.bufferExpression("jade.attrs({ ${val.buf} }, ${val.escaped})");
     }
   }
-  
+
   fakeEval(String str){
     var fakeJsonStr = str
       .replaceAll('"{','{')
       .replaceAll('}"','}')
       .replaceAll(r"\#", "#");
-    
+
     var sb = new StringBuffer();
     bool inQuotes = false;
     String lastQuote = null;
@@ -491,7 +491,7 @@ class Compiler {
       lastChar = c;
     }
     fakeJsonStr = sb.toString();
-    
+
     try {
       return JSON.parse(fakeJsonStr);
     } catch(e){
@@ -499,7 +499,7 @@ class Compiler {
       return {};
     }
   }
-  
+
   AttrsTuple attrs(List attrs){
     var buf = [];
     var classes = [];
@@ -528,12 +528,12 @@ class Compiler {
       ..buf = buf.join(', ')
       ..escaped = JSON.stringify(escaped)
       ..inherits = inherits
-      ..constant = constant;    
+      ..constant = constant;
   }
 
   isConstant(val){
     // Check strings/literals
-    if (new RegExp(r'^ *("([^"\\]*(\\.[^"\\]*)*)"' 
+    if (new RegExp(r'^ *("([^"\\]*(\\.[^"\\]*)*)"'
         + r"|'([^'\\]*(\\.[^'\\]*)*)'|true|false|null) *$", caseSensitive:false)
       .hasMatch("$val"))
     return true;
@@ -541,13 +541,13 @@ class Compiler {
     // Check numbers
     if (!double.parse(val, (x) => double.NAN).isNaN)
       return true;
-  
+
     // Check arrays
     List<String> matches;
     if ((matches = exec(new RegExp(r"^ *\[(.*)\] *$"), val)) != null)
       return matches[1].split(',').every(isConstant);
-  
+
     return false;
   }
-  
+
 }

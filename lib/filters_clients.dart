@@ -8,7 +8,7 @@ dynamic clientFilter(String name, String str, Map options){
     res = clientFilters[name](str, options);
   else
     throw new ParseError('unknown filter ":$name"');
- 
+
   return res;
 }
 

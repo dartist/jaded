@@ -15,11 +15,11 @@ dynamic filter(String name, String str, Map options){
       res = '<style type="text/css">' + res + '</style>';
     } else if (transformer.outputFormat == 'xml') {
       res = res.replaceAll("'", '&#39;');
-    } 
+    }
   }
   else
     throw new ParseError('unknown filter ":$name"');
- 
+
   return res;
 }
 

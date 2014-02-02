@@ -38,8 +38,8 @@ merge(Map a, Map b, [escaped]) {
   }
 
   return a;
-}  
-  
+}
+
 String attrs(Map obj, [Map escaped]){
   var buf = [];
   bool terse = obj['terse'];
@@ -89,7 +89,7 @@ class RuntimeError extends Error {
   String path;
   String message;
   Error err;
-  
+
   toString() => "$message $path";
 }
 
@@ -117,12 +117,12 @@ rethrows(err, filename, lineno){
   var msg = err is NoSuchMethodError
       ? err.toString()
       : "line: ${err.line}, column ${err.column}: $err";
-  
+
   // Alter exception message
   throw new RuntimeError()
     ..err = err
     ..path = filename
-    ..message = (filename != null ? filename : 'Jade') 
+    ..message = (filename != null ? filename : 'Jade')
       + ':$lineno\n$context\n\n$msg';
 }
 

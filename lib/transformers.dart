@@ -11,9 +11,9 @@ class CDataTransformer extends Transformer {
   String name = 'cdata';
   List engines = ['.']; // `.` means "no dependency"
   String outputFormat = 'xml';
-  
+
   sync(String str, Map options){
-    var ret = this.cache(options); 
+    var ret = this.cache(options);
     return ret != null ? ret : this.cache(options, '<![CDATA[\n$str\n]]>');
   }
 }
@@ -24,7 +24,7 @@ class CssTransformer extends Transformer {
   String outputFormat = 'css';
 
   sync(String str, Map options){
-    var ret = this.cache(options); 
+    var ret = this.cache(options);
     return ret != null ? ret : this.cache(options, str);
   }
 }
@@ -35,7 +35,7 @@ class JsTransformer extends Transformer {
   String outputFormat = 'js';
 
   sync(String str, Map options){
-    var ret = this.cache(options); 
+    var ret = this.cache(options);
     return ret != null ? ret : this.cache(options, str);
   }
 }
@@ -46,7 +46,7 @@ class MarkdownTransformer extends Transformer {
   String outputFormat = 'html';
 
   sync(String str, Map options){
-    var ret = this.cache(options); 
+    var ret = this.cache(options);
     return ret != null ? ret : this.cache(options, markdownToHtml(str));
   }
 }
@@ -58,15 +58,15 @@ abstract class Transformer {
   List engines;
   bool isBinary = false;
   dynamic sync(String str, Map options);
-  
+
   Map _cache = {};
   cache(Map options, [String str]) {
     var key = this.runtimeType.toString() + (options != null ? JSON.stringify(options) : "");
     if (str != null)
-      _cache[key] = str;    
-    return _cache[key];   
+      _cache[key] = str;
+    return _cache[key];
   }
-  
+
   clone(Map options) {
     var ret = {};
     for (var key in options.keys){
@@ -74,7 +74,7 @@ abstract class Transformer {
     }
     return ret;
   }
-  
+
   void loadModule(){}
 
   String fixString(String str) {
@@ -82,15 +82,15 @@ abstract class Transformer {
     //convert buffer to string
     str = str.toString();
     // Strip UTF-8 BOM if it exists
-    str = (0xFEFF == str.codeUnitAt(0) 
+    str = (0xFEFF == str.codeUnitAt(0)
         ? str.substring(1)
         : str);
     //remove `\r` added by windows
     return str.replaceAll(new RegExp(r"\r"), '');
   }
-  
+
   dynamic minify(String str, Map options) => str;
-  
+
   dynamic renderSync(String str, Map options){
     if (options == null)
       options = {};
@@ -111,7 +111,7 @@ abstract class Transformer {
 //      else throw new Error('There was a problem transforming ' + (options.filename || '') + ' syncronously using ' + this.name);
 //    } else {
 //      throw new Error(this.name + ' does not support transforming syncronously.');
-//    }    
-  }   
+//    }
+  }
 }
 

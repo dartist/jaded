@@ -4,7 +4,7 @@ import "package:jaded/jaded.dart";
 import "package:jaded/jaded.dart" as jade;
 
 main(){
-  
+
   renderEquals(String expected, String jade, {
     Map locals,
     bool debug:false,
@@ -15,7 +15,7 @@ main(){
   }){
     if (locals == null)
       locals = {};
-    RenderAsync fn = compile(jade, 
+    RenderAsync fn = compile(jade,
         locals:locals, debug:debug, colons:colons, doctype:doctype, filename:filename);
     return fn(locals).then(expectAsync1((html){
       fn({"__shutdown":true}); //close isolate after use
@@ -27,25 +27,25 @@ main(){
 
   String __dirname = ".";
   String perfTest = new File(__dirname + '/fixtures/perf.jade').readAsStringSync();
-  
+
   //test passing tests
   ignore(a, fn){}
   runGroup(int groupNo, a, fn){
     switch(groupNo){
       case 0:
-//Uncomment group to run        
+//Uncomment group to run
       case 1:
       case 2:
       case 3:
       case 4:
       case 5:
-        
+
         group(a, fn);
     }
   }
-  
+
   group('jade', (){
-    
+
 //    test('--adhoc test', (){
 //      jade.compile(perfTest)({'report':[]}).then(expectAsync1((str){
 //        assert(true);
@@ -71,7 +71,7 @@ main(){
 
       test('should support line endings', (){
         var str, html;
-        
+
         str = [
                'p',
                'div',
@@ -83,7 +83,7 @@ main(){
                 '<div></div>',
                 '<img/>'
                 ].join('');
-        
+
         renderEquals(html, str);
 
         str = [
@@ -381,9 +381,9 @@ main(){
         renderEquals('<p>Users: 0</p>', 'p Users: #{0}');
         renderEquals('<p>Users: false</p>', 'p Users: #{false}');
       });
-      
+
     });
-    
+
     runGroup(2, '.compile()', (){
 
       test('should support test html 5 mode', (){
@@ -442,7 +442,7 @@ main(){
 
         renderEquals("<a data-foo='{\"foo\":\"bar\",\"bar\":\"baz\"}'></a>", 'a(data-foo  = "{ \'foo\': \'bar\', \'bar\': \'baz\' }")');
         //side-effect with fakeEval using JSON always converted to double-quotes
-        renderEquals("<a data-foo=\"{ &quot;foo&quot;: &quot;bar&quot;, &quot;bar&quot;: &quot;baz&quot; }\"></a>", "a(data-foo  = '{ \"foo\": \"bar\", \"bar\": \"baz\" }')"); 
+        renderEquals("<a data-foo=\"{ &quot;foo&quot;: &quot;bar&quot;, &quot;bar&quot;: &quot;baz&quot; }\"></a>", "a(data-foo  = '{ \"foo\": \"bar\", \"bar\": \"baz\" }')");
 
         renderEquals('<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>', 'meta(http-equiv="X-UA-Compatible", content="IE=edge,chrome=1")');
 
@@ -462,9 +462,9 @@ main(){
 
         renderEquals('<meta content="what\'s up? \'weee\'"/>', 'meta(content="what\'s up? \'weee\'")');
       });
-      
+
     });
-    
+
     runGroup(3, '.compile()', (){
 
       test('should support colons option', (){
@@ -751,7 +751,7 @@ main(){
 
       test('should support - each', (){
         String str, html;
-        
+
         // Array
         str = [
                '- var items = ["one", "two", "three"];',
@@ -946,7 +946,7 @@ main(){
             , str, filename: __dirname + '/jade.test.js');
       });
     });
-    
+
     runGroup(4, '.render()', (){
       test('should support .str, fn)', (){
         jade.render('p foo bar').then(expectAsync1((str){
@@ -973,13 +973,13 @@ main(){
 
       test('should support .compile()', (){
         jade.compile('p foo')().then(expectAsync1((str){
-          
+
           expect(str, equals('<p>foo</p>'));
         }));
       });
 
       test('should support .compile() locals', (){
-        jade.compile('p= foo')({ 'foo': 'bar' }).then(expectAsync1((str){          
+        jade.compile('p= foo')({ 'foo': 'bar' }).then(expectAsync1((str){
           expect(str, equals('<p>bar</p>'));
         }));
       });
@@ -1002,7 +1002,7 @@ main(){
         var tag = new Tag('a');
         var name = 'href';
         var val = '"/"';
-        
+
         tag.setAttribute(name, val);
         expect(tag.getAttribute(name), equals(val));
         tag.removeAttribute(name);
@@ -1027,13 +1027,13 @@ main(){
           assert(true);
         }));
       });
-    
+
     });
-    
+
     runGroup(5, 'custom tests', (){
-      
+
       test('should support deep-nested var references', (){
-        renderEquals('<p>/foo</p>', 'p #{request["path"]}', 
+        renderEquals('<p>/foo</p>', 'p #{request["path"]}',
             locals:{'request': {'path': '/foo'}});
 
         renderEquals('<li>1</li><li>2</li><li>3</li>',
@@ -1041,7 +1041,7 @@ main(){
             locals:{'request': {'args': [1,2,3]}});
 
 //Can't pass non-primitave objects to isolates
-//      renderEquals('<p>/foo</p>','p #{foo.bar}', 
+//      renderEquals('<p>/foo</p>','p #{foo.bar}',
 //        locals:{'foo': new Foo()..bar="/foo"});
 
 //      renderEquals('<li>1</li>\n<li>2</li>\n<li>3</li>\n',
@@ -1049,8 +1049,8 @@ main(){
 //         locals:{'foo': new Foo()..args=[1,2,3]});
       });
     });
-    
-  });  
+
+  });
 }
 
 
