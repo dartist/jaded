@@ -1,12 +1,14 @@
+.DS_Store
+packages
+.project
+pubspec.lock
+
+.directory
+*/.directory
 
 test/jaded-codegen.dart
-
 test/jaded-codegen2.dart
-
 test/jaded-codegen.dart
-
 test/jaded.views.dart
-
-test/files/jade.views.dart
-
+test/jade.views.dart
 .buildlog
