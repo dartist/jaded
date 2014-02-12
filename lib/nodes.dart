@@ -13,7 +13,7 @@ abstract class Node {
   get isBlock => false;
 
   Node clone() => this;
-  
+
   get label => "$runtimeType: ${block != null ? block.nodes.length: 0} blocks";
   toString() => toDebugString(0);
 
@@ -36,27 +36,27 @@ class Block extends Node {
   List prepended = [];
   List appended = [];
   Parser parser;
-  
+
   Block([node]){
     if (node != null)
       nodes.add(node);
   }
-  
+
   void replace(Block other){
     other.nodes = nodes;
   }
-  
+
   add(Node node){
     nodes.add(node);
   }
-  
+
   get isEmpty => nodes.isEmpty;
-  
+
   unshift(Node node) {
     nodes.insert(0, node);
     return nodes.length;
   }
-  
+
   includeBlock(){
     var ret = this;
 
@@ -70,18 +70,18 @@ class Block extends Node {
 
     return ret;
   }
-  
+
   clone(){
     var clone = new Block();
     for (var node in nodes){
       clone.push(node.clone());
     }
     return clone;
-  }  
+  }
 
   get label => "$runtimeType: ${nodes.length} nodes:";
   toString() => toDebugString(0);
-  
+
   toDebugString(int indent) {
     var spaces = new List.filled(indent, '').join("  ");
     var str = "$spaces$label";
@@ -90,7 +90,7 @@ class Block extends Node {
       str += "\n$spaces  [$i] ${node.toDebugString(indent+1)}";
     }
     return str;
-    
+
   }
 }
 
@@ -99,31 +99,31 @@ class Attr {
   String name;
   var val;
   bool escaped;
-  
+
   Attr([this.name,this.val,this.escaped]);
-  
+
   toString() => "$name = $val / $escaped";
 }
 
 class Attrs extends Node {
   List<Attr> attrs = [];
-    
+
   void setAttribute(String name, var val, [bool escaped=false]){
     attrs.add(new Attr(name, val, escaped));
   }
-  
+
   void removeAttribute(String name){
     for (var i = 0, len = attrs.length; i < len; ++i) {
       if (attrs[i] != null && attrs[i].name == name)
-        this.attrs.removeAt(i);      
+        this.attrs.removeAt(i);
     }
   }
-  
+
   getAttribute(name) {
     var attr = attrs.firstWhere((x) => x != null && x.name == name, orElse:() => null);
-    return attr != null ? attr.val : null; 
+    return attr != null ? attr.val : null;
   }
-  
+
 }
 
 
@@ -131,7 +131,7 @@ class BlockComment extends Node {
   Block block;
   String val;
   bool buffer;
-  
+
   BlockComment([this.val, this.block, this.buffer]);
 }
 
@@ -139,7 +139,7 @@ class BlockComment extends Node {
 class Case extends Node {
   String expr;
   Block block;
-  
+
   Case([this.expr, this.block]);
 }
 
@@ -147,7 +147,7 @@ class When extends Node {
   String expr;
   Block block;
   bool debug = false;
-  
+
   When([this.expr, this.block]);
 }
 
@@ -157,21 +157,21 @@ class Code extends Node {
   bool buffer;
   bool escape;
   bool debug;
-  
+
   Code([this.val, this.buffer, this.escape]){
-    if (new RegExp(r"^ *else").hasMatch(val)) 
+    if (new RegExp(r"^ *else").hasMatch(val))
       debug = false;
     if (buffer == null)
       buffer = false;
   }
-  
+
   toString() => val;
 }
 
 
 class Comment extends Node {
   String val;
-  
+
   Comment([this.val, buffer]){
     this.buffer = buffer;
   }
@@ -190,7 +190,7 @@ class Each extends Node {
   String key;
   Block block;
   Node alternative;
-  
+
   Each(this.obj, this.val, this.key, [this.block]);
 }
 
@@ -199,7 +199,7 @@ class Filter extends Node {
   String name;
   Block block;
   Map attrs;
-  
+
   Filter(this.name, this.block, this.attrs);
 }
 
@@ -216,7 +216,7 @@ class Mixin extends Tag {
   Block block;
   bool call = false;
   List attrs = [];
-  
+
   Mixin([this.name, this.args, this.block, this.call]);
 }
 
@@ -227,19 +227,19 @@ class Tag extends Attrs {
   List attrs = [];
   bool selfClosing = false;
   Code code;
-  
+
   Tag([this.name, this.block]){
     if (block == null)
       block = new Block();
   }
-  
+
   clone(){
     return new Tag(this.name, this.block.clone())
       ..line = line
       ..attrs = attrs
       ..textOnly = textOnly;
   }
-  
+
   get isInline => inlineTags.contains(this.name);
 
   bool canInline(){
@@ -247,17 +247,17 @@ class Tag extends Attrs {
 
     isInline(Node node){
       // Recurse if the node is a block
-      if (node.isBlock) 
-        return (node as Block).nodes.every(isInline);      
+      if (node.isBlock)
+        return (node as Block).nodes.every(isInline);
       return node.isText || (node.isInline);
     }
-    
+
     // Empty tag
     if (nodes.length == 0) return true;
-    
+
     // Text-only or inline-only tag
     if (1 == nodes.length) return isInline(nodes[0]);
-    
+
     // Multi-line inline-only tag
     if (this.block.nodes.every(isInline)) {
       for (var i = 1, len = nodes.length; i < len; ++i) {
@@ -266,11 +266,11 @@ class Tag extends Attrs {
       }
       return true;
     }
-    
+
     // Mixed tag
     return false;
   }
-  
+
   get label => "$runtimeType: <$name${selfClosing ? '/' : '></$name>'}";
 }
 
@@ -278,11 +278,11 @@ class Tag extends Attrs {
 class Text extends Node {
   String val = '';
   bool isText = true;
-  
+
   Text(line){
     if (line is String)
       this.val = line;
   }
-  
+
   toString() => val;
 }

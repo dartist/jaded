@@ -15,13 +15,13 @@ class Token {
   String key;
   String code;
   Map attrs;
-  
+
   Token([this.type, this.line, this.val]);
 }
 
 class Lexer {
-  String str; 
-  
+  String str;
+
   String input;
   bool colons;
   List<Token> deferredTokens = [];
@@ -33,32 +33,32 @@ class Lexer {
   bool pipeless = false;
   List<String> varDeclarations = [];
   List<String> varReferences = [];
-  
+
   void addVarDeclaration(String varName){
     if (!varDeclarations.contains(varName))
       varDeclarations.add(varName);
   }
-  
+
   void addVarReference(String varExpr){
     //Register the root var reference
     var pos = varExpr.indexOf('.');
     if (pos == -1) pos = varExpr.indexOf('[');
     if (pos == -1) pos = varExpr.length;
-    
+
     var varName = varExpr.substring(0, pos);
     if (!varReferences.contains(varName))
       varReferences.add(varName);
   }
-  
+
   Lexer(this.str, {this.colons:false}){
     input = str.replaceAll(new RegExp(r"\r\n|\r"), '\n');
   }
-  
+
   Token tok(String type, [val]) => new Token(type, lineno, val);
-    
+
   consume(int len) =>
     input = input.substring(len);
-  
+
   Token scan(RegExp regexp, String type){
     List<String> captures;
     if ((captures = exec(regexp, input)) != null){
@@ -66,31 +66,31 @@ class Lexer {
       return tok(type, captures.length > 1 ? captures[1] : null);
     }
   }
-  
+
   defer(Token tok) =>
     deferredTokens.add(tok);
-  
+
   lookahead(int n){
     var fetch = n - stash.length;
     while (fetch-- > 0) stash.add(next());
     return stash[--n];
   }
-  
+
  SrcPosition bracketExpression([int skip=0]){
     var start = input[skip];
     if (start != '(' && start != '{' && start != '[') throw new ParseError('unrecognized start character');
     var end = ({'(': ')', '{': '}', '[': ']'})[start];
     var range = parseJSExpression(input, start: skip + 1);
     if (input[range.end] != end) throw new ParseError('start character ' + start + ' does not match end character ' + input[range.end]);
-    return range;    
+    return range;
   }
-  
+
 Token stashed() =>
   stash.length > 0 ? stash.removeAt(0) : null;
 
 Token deferred() =>
   deferredTokens.length > 0 ? deferredTokens.removeAt(0) : null;
-  
+
 Token eos(){
   if (input.length > 0) return null;
   if (indentStack.length > 0) {
@@ -99,18 +99,18 @@ Token eos(){
   } else {
     return tok('eos');
   }
-}  
-  
+}
+
 blank(){
   List<String> captures;
   if ((captures = exec(new RegExp(r"^\n *\n"), input)) != null) {
     consume(captures[0].length - 1);
     ++lineno;
-    return pipeless 
+    return pipeless
         ? tok('text', '')
         : next();
   }
-} 
+}
 
 comment(){
   List<String> captures;
@@ -120,14 +120,14 @@ comment(){
       ..buffer = '-' != captures[1];
   }
 }
-  
+
 interpolation(){
   if (new RegExp(r"^#\{").hasMatch(input)){
     var match;
     try {
       match = bracketExpression(1);
     } catch (ex) {
-      return;//not an interpolation expression, just an unmatched open interpolation
+      return null;//not an interpolation expression, just an unmatched open interpolation
     }
     consume(match.end + 1);
     return tok('interpolation', match.src);
@@ -161,7 +161,7 @@ id() => scan(new RegExp(r"^#([\w-]+)"), 'id');
 
 className() => scan(new RegExp(r"^\.([\w-]+)"), 'class');
 
-text() => 
+text() =>
     scan(new RegExp(r"^(?:\| ?| ?)?([^\n]+)"), 'text');
 
 Extends() => scan(new RegExp(r"^extends? +([^\n]+)"), 'extends');
@@ -170,7 +170,7 @@ prepend() {
   List<String> captures;
   if ((captures = exec(new RegExp(r"^prepend +([^\n]+)"), input)) != null) {
     consume(captures[0].length);
-    var name = captures[1];    
+    var name = captures[1];
     return tok('block', name)
       ..mode = 'prepend';
   }
@@ -194,7 +194,7 @@ block(){
     if (mode == null || mode.isEmpty)
       mode = 'replace';
     var name = captures[2];
-    
+
     return tok('block', name)
       ..mode = mode;
   }
@@ -213,19 +213,19 @@ Default() => scan(new RegExp(r"^default *"), 'default');
 assignment() {
   List<String> captures;
   //DB original: ^(\w+) += *([^;\n]+)( *;? *)
-  if ((captures = exec(new RegExp(r"^(\w+) += *([^\n]+)( *;? *)"), input)) != null) { 
+  if ((captures = exec(new RegExp(r"^(\w+) += *([^\n]+)( *;? *)"), input)) != null) {
 
     consume(captures[0].length);
     var name = captures[1];
     var val = captures[2];
-    
+
     val = val.replaceFirst(new RegExp(r"\s*;\s*$"), ''); //DB: remove trailing ';'
 
     addVarDeclaration(name);
-    
+
     if (_isVarExpr(val))
       addVarReference(val);
-    
+
     return tok('code', '$name = ($val);');
   }
 }
@@ -248,7 +248,7 @@ call(){
         //not a bracket expcetion, just unmatched open parens
       }
     }
-    
+
     return _tok;
   }
 }
@@ -292,7 +292,7 @@ each() {
   List<String> captures;
   if ((captures = exec(new RegExp(r"^(?:- *)?(?:each|for) +([a-zA-Z_$][\w$]*)(?: *, *([a-zA-Z_$][\w$]*))? * in *([^\n]+)"), input)) != null) {
     consume(captures[0].length);
-    
+
     var code = captures[3];
     if (_isVarExpr(code))
       addVarReference(code);
@@ -315,7 +315,7 @@ code() {
       expr = expr.substring("var ".length);
       var ret = exec(varRegEx, expr);
       if (ret != null)
-        addVarDeclaration(ret[0]);      
+        addVarDeclaration(ret[0]);
     } else if (flags == "="){
       if (_isVarExpr(expr))
         addVarReference(expr);
@@ -349,7 +349,7 @@ attrs() {
           String _ = match.group(0);
           String escape = match.group(1);
           String expr = match.group(2);
-              
+
           if (escape != null) return _;
           try {
             var range = parseJSExpression(expr);
@@ -544,7 +544,7 @@ indent(){
 
 pipelessText() {
   if (pipeless) {
-    if (input.startsWith('\n')) return;
+    if (input.startsWith('\n')) return null;
     var i = input.indexOf('\n');
     if (-1 == i) i = input.length;
     var str = input.substring(0, i);
@@ -553,7 +553,7 @@ pipelessText() {
   }
 }
 
-Token colon() => 
+Token colon() =>
     scan(new RegExp(r"^: *"), ':');
 
 Token advance() => or(stashed(), () => next());

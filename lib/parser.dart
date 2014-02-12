@@ -14,30 +14,30 @@ class Parser {
   Parser extending;
   Parser _root;
   Parser get root => (_root != null ? _root : this);
-  
+
   int _spaces;
-    
+
   Parser(this.input, {this.filename, this.basedir, this.colons}){
     lexer = new Lexer(input, colons:colons);
     contexts = [this];
   }
 
-  Parser createParser(str, {String filename, String basedir, bool colons:false}) => 
+  Parser createParser(str, {String filename, String basedir, bool colons:false}) =>
     new Parser(str, filename:filename, basedir:basedir, colons:colons)
       .._root = root;
-  
+
   List<String> undeclaredVarReferences(){
     var ret = [];
     for (var ref in lexer.varReferences){
       if (!lexer.varDeclarations.contains(ref))
         ret.add(ref);
-    }      
+    }
     return ret;
   }
-  
-  get varDeclarations => 
+
+  get varDeclarations =>
     lexer.varDeclarations;
-  
+
   Parser context([Parser parser]){
     if (parser != null) {
       contexts.add(parser);
@@ -52,16 +52,16 @@ class Parser {
   void skip(int n){
     while (n-- > 0) advance();
   }
-  
+
   Token peek() => lookahead(1);
-  
+
   int line() => lexer.lineno;
 
   Token lookahead(n) => lexer.lookahead(n);
 
   Block parse(){
     var parser;
-    var block = new Block() 
+    var block = new Block()
       ..line = line();
 
     while ('eos' != peek().type) {
@@ -85,7 +85,7 @@ class Parser {
 
     return block;
   }
-  
+
   expect(type){
     if (peek().type == type) {
       return advance();
@@ -95,7 +95,7 @@ class Parser {
   }
 
   accept(type) => peek().type == type ? advance() : null;
- 
+
   parseExpr(){
     switch (peek().type) {
       case 'tag':
@@ -144,33 +144,33 @@ class Parser {
       default:
         throw new ParseError('unexpected token "${peek().type}"');
     }
-  }  
+  }
 
   Text parseText() =>
     new Text(expect('text').val)
       ..line = line();
-   
+
   Block parseBlockExpansion(){
     if (':' == peek().type) {
       advance();
       return new Block(parseExpr());
-    } 
+    }
     return block();
   }
-  
+
   Case parseCase() =>
     new Case(expect('case').val)
       ..line = line()
       ..block = block();
-  
+
   When parseWhen() =>
     new When(expect('when').val, parseBlockExpansion());
-   
+
   When parseDefault(){
     expect('default');
     return new When('default', parseBlockExpansion());
-  }  
-  
+  }
+
   Code parseCode(){
     var tok = expect('code');
     var node = new Code(tok.val, tok.buffer, tok.escape)
@@ -183,8 +183,8 @@ class Parser {
       node.block = block();
     }
     return node;
-  }  
-  
+  }
+
   Node parseComment(){
     var tok = expect('comment');
     Node node = 'indent' == peek().type
@@ -193,8 +193,8 @@ class Parser {
 
     node.line = line();
     return node;
-  }  
-  
+  }
+
   Doctype parseDoctype() =>
     new Doctype(expect('doctype').val)
       ..line = line();
@@ -210,7 +210,7 @@ class Parser {
     return new Filter(tok.val, block, attrs != null ? attrs.attrs : null)
       ..line = line();
   }
-  
+
   Each parseEach(){
     var tok = expect('each');
     var node = new Each(tok.code, tok.val, tok.key)
@@ -221,7 +221,7 @@ class Parser {
       node.alternative = block();
     }
     return node;
-  }  
+  }
 
   String resolvePath(String path, purpose) {
 
@@ -236,8 +236,8 @@ class Parser {
     if (basename(path).indexOf('.') == -1) path += '.jade';
 
     return path;
-  }  
-  
+  }
+
   Literal parseExtends(){
     var path = resolvePath(expect('extends').val.trim(), 'extends');
     if ('.jade' != path.substring(path.length-5)) path += '.jade';
@@ -252,7 +252,7 @@ class Parser {
     // TODO: null node
     return new Literal('');
   }
-  
+
   Block parseBlock(){
     var _block = expect('block');
     var mode = _block.mode;
@@ -290,7 +290,7 @@ class Parser {
 
     return blocks[name] = _block;
   }
-  
+
   Node parseInclude(){
     var path = resolvePath(expect('include').val.trim(), 'include');
 
@@ -319,7 +319,7 @@ class Parser {
 
     return ast;
   }
-  
+
   Mixin parseCall(){
     var tok = expect('call');
     var name = tok.val;
@@ -333,8 +333,8 @@ class Parser {
     }
     if (mixin.block.isEmpty) mixin.block = null;
     return mixin;
-  }  
-  
+  }
+
   Mixin parseMixin(){
     var tok = expect('mixin');
     var name = tok.val;
@@ -343,10 +343,10 @@ class Parser {
 
     // definition
     if ('indent' == peek().type) {
-      
+
       //DB: mixins can be overwritten
       root.lexer.addVarDeclaration(name + "_mixin");
-      
+
       mixin = new Mixin(name, args, block(), false);
       mixins[name] = mixin;
       return mixin;
@@ -355,12 +355,12 @@ class Parser {
       return new Mixin(name, args, null, true);
     }
   }
-  
+
   Block parseTextBlock(){
     var block = new Block();
     block.line = line();
     var spaces = expect('indent').val;
-    if (null == _spaces) _spaces = spaces;    
+    if (null == _spaces) _spaces = spaces;
     var indent = new List.filled(spaces - _spaces + 1, '').join(' ');
     while ('outdent' != peek().type) {
       switch (peek().type) {
@@ -383,7 +383,7 @@ class Parser {
     expect('outdent');
     return block;
   }
-  
+
   Block block(){
     var block = new Block();
     block.line = line();
@@ -398,13 +398,13 @@ class Parser {
     expect('outdent');
     return block;
   }
-  
+
   parseInterpolation(){
     var tok = advance();
     return tag(new Tag(tok.val)
       ..buffer = true);
   }
- 
+
   parseTag(){
     // ast-filter look-ahead
     var i = 2;
@@ -413,8 +413,8 @@ class Parser {
     var _tok = advance();
     return tag(new Tag(_tok.val)
       ..selfClosing = _tok.selfClosing);
-  }  
- 
+  }
+
   tag(Tag tag){
     bool dot = false;
 
@@ -506,6 +506,6 @@ class Parser {
     return tag;
   }
 
-  logWarn(String msg) => print(msg);  
+  logWarn(String msg) => print(msg);
 }
 

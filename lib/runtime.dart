@@ -2,7 +2,7 @@ library runtime;
 
 import 'dart:io';
 import 'dart:math' as Math;
-import 'dart:json' as JSON;
+import 'package:json/json.dart' as JSON;
 
 var interp;
 List<Debug> debug;
@@ -38,8 +38,8 @@ merge(Map a, Map b, [escaped]) {
   }
 
   return a;
-}  
-  
+}
+
 String attrs(Map obj, [Map escaped]){
   var buf = [];
   bool terse = obj['terse'];
@@ -85,11 +85,11 @@ escape(html) => "$html"
   .replaceAll(">", '&gt;')
   .replaceAll('"', '&quot;');
 
-class RuntimeError implements Error {
+class RuntimeError extends Error {
   String path;
   String message;
   Error err;
-  
+
   toString() => "$message $path";
 }
 
@@ -117,12 +117,12 @@ rethrows(err, filename, lineno){
   var msg = err is NoSuchMethodError
       ? err.toString()
       : "line: ${err.line}, column ${err.column}: $err";
-  
+
   // Alter exception message
   throw new RuntimeError()
     ..err = err
     ..path = filename
-    ..message = (filename != null ? filename : 'Jade') 
+    ..message = (filename != null ? filename : 'Jade')
       + ':$lineno\n$context\n\n$msg';
 }
 
