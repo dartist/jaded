@@ -1,6 +1,6 @@
 import "package:unittest/unittest.dart";
 import "dart:io";
-import "package:json/json.dart" as JSON;
+import "dart:convert" as CONV;
 import "package:jaded/jaded.dart";
 import "package:jaded/jaded.dart" as jade;
 
@@ -42,7 +42,7 @@ main(){
             html = html.replaceAll(new RegExp(r'\n'), '');
           }
 
-          expect(JSON.stringify(actual.trim()), equals(JSON.stringify(html)));
+          expect(CONV.JSON.encode(actual.trim()), equals(CONV.JSON.encode(html)));
         }));
       });
     });
