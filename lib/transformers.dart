@@ -61,7 +61,7 @@ abstract class Transformer {
 
   Map _cache = {};
   cache(Map options, [String str]) {
-    var key = this.runtimeType.toString() + (options != null ? JSON.stringify(options) : "");
+    var key = this.runtimeType.toString() + (options != null ? CONV.JSON.encode(options) : "");
     if (str != null)
       _cache[key] = str;
     return _cache[key];

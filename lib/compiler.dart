@@ -96,7 +96,7 @@ class Compiler {
       }
     }
 
-    str = JSON.stringify(str);
+    str = CONV.JSON.encode(str);
     str = str.substring(1, str.length - 1);
 
     if (lastBufferedIdx == buf.length) {
@@ -137,7 +137,7 @@ class Compiler {
 
   void visit(Node node){
     if (debug) {
-      var filename = node.filename != null ? JSON.stringify(node.filename) : 'jade.debug[0].filename';
+      var filename = node.filename != null ? CONV.JSON.encode(node.filename) : 'jade.debug[0].filename';
       buf.add('jade.debug.insert(0, new Debug(lineno: ${node.line}, filename: $filename));');
     }
 
@@ -448,7 +448,7 @@ class Compiler {
     if (val.inherits) {
       bufferExpression("jade.attrs(jade.merge({ ${val.buf} }, attributes), jade.merge(${val.escaped}, escaped, true))");
     } else if (val.constant) {
-      buffer(jade.attrs(fakeEval("{ ${val.buf} }"), JSON.parse(val.escaped)));
+      buffer(jade.attrs(fakeEval("{ ${val.buf} }"), CONV.JSON.decode(val.escaped)));
 
 //      throw new ParseError("eval not supported");
 //      eval('var evalBuf={' + val.buf + '};');
@@ -493,7 +493,7 @@ class Compiler {
     fakeJsonStr = sb.toString();
 
     try {
-      return JSON.parse(fakeJsonStr);
+      return CONV.JSON.decode(fakeJsonStr);
     } catch(e){
       print("Err parsing fakeEval: $fakeJsonStr / $str: $e");
       return {};
@@ -526,7 +526,7 @@ class Compiler {
 
     return new AttrsTuple()
       ..buf = buf.join(', ')
-      ..escaped = JSON.stringify(escaped)
+      ..escaped = CONV.JSON.encode(escaped)
       ..inherits = inherits
       ..constant = constant;
   }

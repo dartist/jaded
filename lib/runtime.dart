@@ -2,7 +2,7 @@ library runtime;
 
 import 'dart:io';
 import 'dart:math' as Math;
-import 'package:json/json.dart' as JSON;
+import 'dart:convert' as CONV;
 
 var interp;
 List<Debug> debug;
@@ -62,7 +62,7 @@ String attrs(Map obj, [Map escaped]){
             buf.add('$key="$key"');
         }
       } else if (0 == key.indexOf('data') && val is! String) {
-        buf.add("$key='${JSON.stringify(val)}'");
+        buf.add("$key='${CONV.JSON.encode(val)}'");
       } else if ('class' == key) {
         if ((val = escape(joinClasses(val))) != null) {
           if (val != "")

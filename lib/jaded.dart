@@ -4,7 +4,8 @@ import "dart:async";
 import "dart:io";
 import "dart:isolate";
 import "dart:mirrors";
-import "package:json/json.dart" as JSON;
+import "dart:convert" as CONV;
+
 import "package:character_parser/character_parser.dart";
 import "package:jaded/runtime.dart" as jade;
 import "package:markdown/markdown.dart";
@@ -154,7 +155,7 @@ String compileBody(str, {
     return fnBody;
 
   return """
-jade.debug = [new Debug(lineno: 1, filename: ${filename != null ? JSON.stringify(filename) : "null"})];
+jade.debug = [new Debug(lineno: 1, filename: ${filename != null ? CONV.JSON.encode(filename) : "null"})];
 try {
 $fnBody
 } catch (err) {
