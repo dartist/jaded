@@ -8,7 +8,7 @@ packages:
   markdown:
     description: markdown
     source: hosted
-    version: "0.5.1"
+    version: "0.7.0"
   node_shims:
     description: node_shims
     source: hosted
