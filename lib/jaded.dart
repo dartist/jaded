@@ -185,13 +185,19 @@ main(List args, SendPort replyTo) {
 """;
 
   //Hack: Write compiled dart out to a static file
-  new File("jaded.views.dart").writeAsStringSync(isolateWrapper);
+  var absolutePath = "${Directory.current.path}/jaded.views.dart";
+  new File(absolutePath).writeAsStringSync(isolateWrapper);
 
   //Re-read back generated file inside an isolate
   RenderAsync renderAsync = ([Map locals = const {}]){
     ReceivePort rPort = new ReceivePort();
-    Isolate.spawnUri(new Uri.file("jaded.views.dart"), [locals], rPort.sendPort);
+    var isolate = Isolate.spawnUri(new Uri.file(absolutePath), [locals], rPort.sendPort);
 
+    isolate.catchError((_){
+      //print("isolate error: ${err}");
+      completer.completeError;
+    });
+    
     var completer = new Completer();
 
     //Call generated code to get the results of render()
