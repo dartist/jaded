@@ -1,7 +1,7 @@
 jaded
 =====
 
-Port of the excellent [Jade view engine](https://github.com/visionmedia/jade/) in Dart.
+Port of the excellent [Pug, formerly Jade view engine](https://github.com/pugjs/pug#rename-from-jade) in Dart.
 
 Now feature complete with the original jade view engine, begin by taking the comprehensive tour on
 [learnjade.com](http://www.learnjade.com/) and refer to jade's 
