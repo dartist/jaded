@@ -1,18 +1,20 @@
 part of jaded;
 
-var transformers = new Map<String,Transformer>()
-..['cdata'] = new CDataTransformer()
-..['css'] = new CssTransformer()
-..['js'] = new JsTransformer()
-..['md'] = new MarkdownTransformer()
-..['markdown'] = new MarkdownTransformer();
+var transformers = Map<String, Transformer>()
+  ..['cdata'] = CDataTransformer()
+  ..['css'] = CssTransformer()
+  ..['js'] = JsTransformer()
+  ..['md'] = MarkdownTransformer()
+  ..['markdown'] = MarkdownTransformer()
+  ..['sass'] = SassTransformer()
+  ..['scss'] = SassTransformer();
 
 class CDataTransformer extends Transformer {
   String name = 'cdata';
   List engines = ['.']; // `.` means "no dependency"
   String outputFormat = 'xml';
 
-  sync(String str, Map options){
+  sync(String str, Map options) {
     var ret = this.cache(options);
     return ret != null ? ret : this.cache(options, '<![CDATA[\n$str\n]]>');
   }
@@ -23,7 +25,7 @@ class CssTransformer extends Transformer {
   List engines = ['.']; // `.` means "no dependency"
   String outputFormat = 'css';
 
-  sync(String str, Map options){
+  sync(String str, Map options) {
     var ret = this.cache(options);
     return ret != null ? ret : this.cache(options, str);
   }
@@ -34,7 +36,7 @@ class JsTransformer extends Transformer {
   List engines = ['.']; // `.` means "no dependency"
   String outputFormat = 'js';
 
-  sync(String str, Map options){
+  sync(String str, Map options) {
     var ret = this.cache(options);
     return ret != null ? ret : this.cache(options, str);
   }
@@ -45,12 +47,22 @@ class MarkdownTransformer extends Transformer {
   List engines = ['.']; // `.` means "no dependency"
   String outputFormat = 'html';
 
-  sync(String str, Map options){
+  sync(String str, Map options) {
     var ret = this.cache(options);
     return ret != null ? ret : this.cache(options, markdownToHtml(str));
   }
 }
 
+class SassTransformer extends Transformer {
+  String name = 'sass';
+  List engines = ['.'];
+  String outputFormat = 'css';
+
+  sync(String str, Map options) {
+    var ret = this.cache(options);
+    return ret != null ? ret : this.cache(options, sass.compileString(str));
+  }
+}
 
 abstract class Transformer {
   String outputFormat;
@@ -61,43 +73,40 @@ abstract class Transformer {
 
   Map _cache = {};
   cache(Map options, [String str]) {
-    var key = this.runtimeType.toString() + (options != null ? CONV.JSON.encode(options) : "");
-    if (str != null)
-      _cache[key] = str;
+    var key = this.runtimeType.toString() +
+        (options != null ? CONV.json.encode(options) : "");
+    if (str != null) _cache[key] = str;
     return _cache[key];
   }
 
   clone(Map options) {
     var ret = {};
-    for (var key in options.keys){
+    for (var key in options.keys) {
       ret[key] = options[key];
     }
     return ret;
   }
 
-  void loadModule(){}
+  void loadModule() {}
 
   String fixString(String str) {
     if (str == null) return str;
     //convert buffer to string
     str = str.toString();
     // Strip UTF-8 BOM if it exists
-    str = (0xFEFF == str.codeUnitAt(0)
-        ? str.substring(1)
-        : str);
+    str = (0xFEFF == str.codeUnitAt(0) ? str.substring(1) : str);
     //remove `\r` added by windows
-    return str.replaceAll(new RegExp(r"\r"), '');
+    return str.replaceAll(RegExp(r"\r"), '');
   }
 
   dynamic minify(String str, Map options) => str;
 
-  dynamic renderSync(String str, Map options){
-    if (options == null)
-      options = {};
+  dynamic renderSync(String str, Map options) {
+    if (options == null) options = {};
     options = clone(options);
     this.loadModule();
 //    if (this._renderSync) {
-      return minify(sync((isBinary ? str : fixString(str)), options), options);
+    return minify(sync((isBinary ? str : fixString(str)), options), options);
 //    } else if (this.sudoSync) {
 //      options.sudoSync = true;
 //      var res, err;
@@ -114,4 +123,3 @@ abstract class Transformer {
 //    }
   }
 }
-

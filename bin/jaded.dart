@@ -1,6 +1,6 @@
-import "package:jaded/jaded.dart";
+import "../lib/jaded.dart";
 
 void main() {
-  var lexer = new Lexer("");
+  var lexer = Lexer("");
   print("Done!");
 }

@@ -14,23 +14,30 @@ class Debug {
   Debug({this.lineno, this.filename});
 }
 
-nulls(val) => val != null && val != '';
+bool nulls(val) => val != null && val != '';
 
 joinClasses(val) =>
-  val is List ? val.map(joinClasses).where(nulls).join(' ') : val;
+    val is List ? val.map(joinClasses).where(nulls).join(' ') : val;
 
 merge(Map a, Map b, [escaped]) {
   var ac = a['class'];
   var bc = b['class'];
 
-  if (ac != null || bc != null) {
-    if (ac == null) ac = [];
-    if (bc == null) bc = [];
-    if (ac is! List) ac = [ac];
-    if (bc is! List) bc = [bc];
-    a['class'] = (ac..addAll(bc)).where(nulls).toList();
+  if (ac is! List<dynamic>) {
+    if (ac is Iterable) {
+      ac = <dynamic>[...ac];
+    } else {
+      ac = <dynamic>[]..add(ac);
+    }
   }
-
+  if (bc is! List<dynamic>) {
+    if (bc is Iterable) {
+      bc = <dynamic>[...bc];
+    } else {
+      bc = <dynamic>[]..add(bc);
+    }
+  }
+  a['class'] = ([...ac, ...bc]).where(nulls).toList();
   for (var key in b.keys) {
     if (key != 'class') {
       a[key] = b[key];
@@ -40,12 +47,12 @@ merge(Map a, Map b, [escaped]) {
   return a;
 }
 
-String attrs(Map obj, [Map escaped]){
+String attrs(Map obj, [Map escaped]) {
   var buf = [];
   bool terse = obj['terse'];
 
   obj.remove('terse');
-  List<String> keys = obj.keys.toList();
+  List<dynamic> keys = obj.keys.toList();
   int len = keys.length;
 
   if (len > 0) {
@@ -62,13 +69,14 @@ String attrs(Map obj, [Map escaped]){
             buf.add('$key="$key"');
         }
       } else if (0 == key.indexOf('data') && val is! String) {
-        buf.add("$key='${CONV.JSON.encode(val)}'");
+        buf.add("$key='${CONV.json.encode(val)}'");
       } else if ('class' == key) {
         if ((val = escape(joinClasses(val))) != null) {
-          if (val != "")
-            buf.add('$key="$val"');
+          if (val != "") buf.add('$key="$val"');
         }
-      } else if (escaped != null && escaped[key] != null && escaped[key] != false) {
+      } else if (escaped != null &&
+          escaped[key] != null &&
+          escaped[key] != false) {
         buf.add('$key="${escape(val)}"');
       } else {
         buf.add('$key="$val"');
@@ -80,10 +88,10 @@ String attrs(Map obj, [Map escaped]){
 }
 
 escape(html) => "$html"
-  .replaceAll("&", '&amp;')
-  .replaceAll("<", '&lt;')
-  .replaceAll(">", '&gt;')
-  .replaceAll('"', '&quot;');
+    .replaceAll("&", '&amp;')
+    .replaceAll("<", '&lt;')
+    .replaceAll(">", '&gt;')
+    .replaceAll('"', '&quot;');
 
 class RuntimeError extends Error {
   String path;
@@ -93,25 +101,22 @@ class RuntimeError extends Error {
   toString() => "$message $path";
 }
 
-rethrows(err, filename, lineno){
+rethrows(err, filename, lineno) {
   print("filename: $filename, lineno: $lineno, err: $err");
   if (filename == null || filename == "undefined") throw err;
 //  if (typeof window != 'undefined') throw err;
 
-  var context = 3;
-  String str = new File(filename).readAsStringSync();
+  dynamic context = 3;
+  String str = File(filename).readAsStringSync();
   List<String> lines = str.split('\n');
   int start = Math.max(lineno - context, 0);
   int end = Math.min(lines.length, lineno + context);
 
   // Error context
   int i = 0;
-  context = lines.sublist(start, end).map((String line){
+  context = lines.sublist(start, end).map((String line) {
     var curr = i++ + start + 1;
-    return (curr == lineno ? '  > ' : '    ')
-      + "$curr"
-      + '| '
-      + line;
+    return (curr == lineno ? '  > ' : '    ') + "$curr" + '| ' + line;
   }).join('\n');
 
   var msg = err is NoSuchMethodError
@@ -119,10 +124,9 @@ rethrows(err, filename, lineno){
       : "line: ${err.line}, column ${err.column}: $err";
 
   // Alter exception message
-  throw new RuntimeError()
+  throw RuntimeError()
     ..err = err
     ..path = filename
-    ..message = (filename != null ? filename : 'Jade')
-      + ':$lineno\n$context\n\n$msg';
+    ..message =
+        (filename != null ? filename : 'Jade') + ':$lineno\n$context\n\n$msg';
 }
-

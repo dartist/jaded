@@ -8,8 +8,8 @@ class Parser {
   String basedir;
   bool colons;
   Lexer lexer;
-  Map<String,Block> blocks = {};
-  Map<String,Mixin> mixins = {};
+  Map<String, Block> blocks = {};
+  Map<String, Mixin> mixins = {};
   List contexts;
   Parser extending;
   Parser _root;
@@ -17,28 +17,27 @@ class Parser {
 
   int _spaces;
 
-  Parser(this.input, {this.filename, this.basedir, this.colons}){
-    lexer = new Lexer(input, colons:colons);
+  Parser(this.input, {this.filename, this.basedir, this.colons}) {
+    lexer = Lexer(input, colons: colons);
     contexts = [this];
   }
 
-  Parser createParser(str, {String filename, String basedir, bool colons:false}) =>
-    new Parser(str, filename:filename, basedir:basedir, colons:colons)
-      .._root = root;
+  Parser createParser(str,
+          {String filename, String basedir, bool colons = false}) =>
+      Parser(str, filename: filename, basedir: basedir, colons: colons)
+        .._root = root;
 
-  List<String> undeclaredVarReferences(){
+  List<dynamic> undeclaredVarReferences() {
     var ret = [];
-    for (var ref in lexer.varReferences){
-      if (!lexer.varDeclarations.contains(ref))
-        ret.add(ref);
+    for (var ref in lexer.varReferences) {
+      if (!lexer.varDeclarations.contains(ref)) ret.add(ref);
     }
     return ret;
   }
 
-  get varDeclarations =>
-    lexer.varDeclarations;
+  get varDeclarations => lexer.varDeclarations;
 
-  Parser context([Parser parser]){
+  Parser context([Parser parser]) {
     if (parser != null) {
       contexts.add(parser);
     } else {
@@ -49,7 +48,7 @@ class Parser {
 
   Token advance() => lexer.advance();
 
-  void skip(int n){
+  void skip(int n) {
     while (n-- > 0) advance();
   }
 
@@ -59,10 +58,9 @@ class Parser {
 
   Token lookahead(n) => lexer.lookahead(n);
 
-  Block parse(){
+  Block parse() {
     var parser;
-    var block = new Block()
-      ..line = line();
+    var block = Block()..line = line();
 
     while ('eos' != peek().type) {
       if ('newline' == peek().type) {
@@ -78,25 +76,24 @@ class Parser {
       context();
 
       // hoist mixins
-      for (var name in mixins.keys)
-        ast.unshift(mixins[name]);
+      for (var name in mixins.keys) ast.unshift(mixins[name]);
       return ast;
     }
 
     return block;
   }
 
-  expect(type){
+  expect(type) {
     if (peek().type == type) {
       return advance();
     } else {
-      throw new ParseError('expected "$type", but got "${peek().type}"');
+      throw ParseError('expected "$type", but got "${peek().type}"');
     }
   }
 
   accept(type) => peek().type == type ? advance() : null;
 
-  parseExpr(){
+  parseExpr() {
     switch (peek().type) {
       case 'tag':
         return parseTag();
@@ -132,7 +129,7 @@ class Parser {
         return parseInterpolation();
       case 'yield':
         advance();
-        var block = new Block();
+        var block = Block();
         block.yield = true;
         return block;
       case 'id':
@@ -142,64 +139,57 @@ class Parser {
         lexer.defer(tok);
         return parseExpr();
       default:
-        throw new ParseError('unexpected token "${peek().type}"');
+        throw ParseError('unexpected token "${peek().type}"');
     }
   }
 
-  Text parseText() =>
-    new Text(expect('text').val)
-      ..line = line();
+  Text parseText() => Text(expect('text').val)..line = line();
 
-  Block parseBlockExpansion(){
+  Block parseBlockExpansion() {
     if (':' == peek().type) {
       advance();
-      return new Block(parseExpr());
+      return Block(parseExpr());
     }
     return block();
   }
 
-  Case parseCase() =>
-    new Case(expect('case').val)
-      ..line = line()
-      ..block = block();
+  Case parseCase() => Case(expect('case').val)
+    ..line = line()
+    ..block = block();
 
-  When parseWhen() =>
-    new When(expect('when').val, parseBlockExpansion());
+  When parseWhen() => When(expect('when').val, parseBlockExpansion());
 
-  When parseDefault(){
+  When parseDefault() {
     expect('default');
-    return new When('default', parseBlockExpansion());
+    return When('default', parseBlockExpansion());
   }
 
-  Code parseCode(){
+  Code parseCode() {
     var tok = expect('code');
-    var node = new Code(tok.val, tok.buffer, tok.escape)
-      ..line = line();
+    var node = Code(tok.val, tok.buffer, tok.escape)..line = line();
     var i = 1;
     while (lookahead(i) != null && 'newline' == lookahead(i).type) ++i;
     var _block = 'indent' == lookahead(i).type;
     if (_block) {
-      skip(i-1);
+      skip(i - 1);
       node.block = block();
     }
     return node;
   }
 
-  Node parseComment(){
+  Node parseComment() {
     var tok = expect('comment');
     Node node = 'indent' == peek().type
-      ? new BlockComment(tok.val, block(), tok.buffer)
-      : new Comment(tok.val, tok.buffer);
+        ? BlockComment(tok.val, block(), tok.buffer)
+        : Comment(tok.val, tok.buffer);
 
     node.line = line();
     return node;
   }
 
-  Doctype parseDoctype() =>
-    new Doctype(expect('doctype').val)
-      ..line = line();
+  Doctype parseDoctype() => Doctype(expect('doctype').val)..line = line();
 
-  Filter parseFilter(){
+  Filter parseFilter() {
     var tok = expect('filter');
     var attrs = accept('attrs');
 
@@ -207,13 +197,13 @@ class Parser {
     var block = parseTextBlock();
     lexer.pipeless = false;
 
-    return new Filter(tok.val, block, attrs != null ? attrs.attrs : null)
+    return Filter(tok.val, block, attrs != null ? attrs.attrs : null)
       ..line = line();
   }
 
-  Each parseEach(){
+  Each parseEach() {
     var tok = expect('each');
-    var node = new Each(tok.code, tok.val, tok.key)
+    var node = Each(tok.code, tok.val, tok.key)
       ..line = line()
       ..block = block();
     if (peek().type == 'code' && peek().val == 'else') {
@@ -224,12 +214,13 @@ class Parser {
   }
 
   String resolvePath(String path, purpose) {
-
     if (path[0] != '/' && filename == null)
-      throw new ParseError('the "filename" option is required to use "$purpose" with "relative" paths');
+      throw ParseError(
+          'the "filename" option is required to use "$purpose" with "relative" paths');
 
     if (path[0] == '/' && basedir == null)
-      throw new ParseError('the "basedir" option is required to use "$purpose" with "absolute" paths');
+      throw ParseError(
+          'the "basedir" option is required to use "$purpose" with "absolute" paths');
 
     path = join([path[0] == '/' ? basedir : dirname(filename), path]);
 
@@ -238,31 +229,30 @@ class Parser {
     return path;
   }
 
-  Literal parseExtends(){
+  Literal parseExtends() {
     var path = resolvePath(expect('extends').val.trim(), 'extends');
-    if ('.jade' != path.substring(path.length-5)) path += '.jade';
+    if ('.jade' != path.substring(path.length - 5)) path += '.jade';
 
-    var str = new File(path).readAsStringSync();
-    var parser = createParser(str, filename:path, basedir:basedir, colons:colons);
+    var str = File(path).readAsStringSync();
+    var parser =
+        createParser(str, filename: path, basedir: basedir, colons: colons);
 
     parser.blocks = blocks;
     parser.contexts = contexts;
     extending = parser;
 
     // TODO: null node
-    return new Literal('');
+    return Literal('');
   }
 
-  Block parseBlock(){
+  Block parseBlock() {
     var _block = expect('block');
     var mode = _block.mode;
     var name = _block.val.trim();
 
-    _block = 'indent' == peek().type
-      ? block()
-      : new Block(new Literal(''));
+    _block = 'indent' == peek().type ? block() : Block(Literal(''));
 
-    Block prev = or(blocks[name], () => new Block());
+    Block prev = or(blocks[name], () => Block());
     if (prev.mode == 'replace') return blocks[name] = prev;
 
     var allNodes = prev.prepended.toList()
@@ -271,14 +261,14 @@ class Parser {
 
     switch (mode) {
       case 'append':
-        prev.appended = prev.parser == this ?
-                        (prev.appended.toList()..addAll(_block.nodes)) :
-                        (_block.nodes.toList()..addAll(prev.appended));
+        prev.appended = prev.parser == this
+            ? (prev.appended.toList()..addAll(_block.nodes))
+            : (_block.nodes.toList()..addAll(prev.appended));
         break;
       case 'prepend':
-        prev.prepended = prev.parser == this ?
-                         (_block.nodes.toList()..addAll(prev.prepended)) :
-                         (prev.prepended.toList()..addAll(_block.nodes));
+        prev.prepended = prev.parser == this
+            ? (_block.nodes.toList()..addAll(prev.prepended))
+            : (prev.prepended.toList()..addAll(_block.nodes));
         break;
     }
     _block
@@ -291,20 +281,21 @@ class Parser {
     return blocks[name] = _block;
   }
 
-  Node parseInclude(){
+  Node parseInclude() {
     var path = resolvePath(expect('include').val.trim(), 'include');
 
     // non-jade
-    var str = new File(path).readAsStringSync();
+    var str = File(path).readAsStringSync();
     if ('.jade' != path.substring(path.length - 5, path.length)) {
-      str = str.replaceAll(new RegExp(r"\r"), '');
+      str = str.replaceAll(RegExp(r"\r"), '');
       var ext = extname(path).substring(1);
-      if (filterExists(ext)) str = filter(ext, str, { "filename": path });
-      return new Literal(str);
+      if (filterExists(ext)) str = filter(ext, str, {"filename": path});
+      return Literal(str);
     }
 
-    var parser = createParser(str, filename:path, basedir:basedir, colons:colons);
-    parser.blocks = merge({}, blocks);
+    var parser =
+        createParser(str, filename: path, basedir: basedir, colons: colons);
+    parser.blocks = merge(<String, Block>{}, blocks);
 
     parser.mixins = mixins;
 
@@ -320,11 +311,11 @@ class Parser {
     return ast;
   }
 
-  Mixin parseCall(){
+  Mixin parseCall() {
     var tok = expect('call');
     var name = tok.val;
     var args = tok.args;
-    var mixin = new Mixin(name, args, new Block(), true);
+    var mixin = Mixin(name, args, Block(), true);
 
     tag(mixin);
     if (mixin.code != null) {
@@ -335,7 +326,7 @@ class Parser {
     return mixin;
   }
 
-  Mixin parseMixin(){
+  Mixin parseMixin() {
     var tok = expect('mixin');
     var name = tok.val;
     var args = tok.args;
@@ -343,37 +334,36 @@ class Parser {
 
     // definition
     if ('indent' == peek().type) {
-
       //DB: mixins can be overwritten
       root.lexer.addVarDeclaration(name + "_mixin");
 
-      mixin = new Mixin(name, args, block(), false);
+      mixin = Mixin(name, args, block(), false);
       mixins[name] = mixin;
       return mixin;
-    // call
+      // call
     } else {
-      return new Mixin(name, args, null, true);
+      return Mixin(name, args, null, true);
     }
   }
 
-  Block parseTextBlock(){
-    var block = new Block();
+  Block parseTextBlock() {
+    var block = Block();
     block.line = line();
     var spaces = expect('indent').val;
     if (null == _spaces) _spaces = spaces;
-    var indent = new List.filled(spaces - _spaces + 1, '').join(' ');
+    var indent = List.filled(spaces - _spaces + 1, '').join(' ');
     while ('outdent' != peek().type) {
       switch (peek().type) {
         case 'newline':
           advance();
           break;
         case 'indent':
-          parseTextBlock().nodes.forEach((node){
+          parseTextBlock().nodes.forEach((node) {
             block.add(node);
           });
           break;
         default:
-          var text = new Text(indent + advance().val);
+          var text = Text(indent + advance().val);
           text.line = line();
           block.add(text);
       }
@@ -384,8 +374,8 @@ class Parser {
     return block;
   }
 
-  Block block(){
-    var block = new Block();
+  Block block() {
+    var block = Block();
     block.line = line();
     expect('indent');
     while ('outdent' != peek().type) {
@@ -399,53 +389,51 @@ class Parser {
     return block;
   }
 
-  parseInterpolation(){
+  parseInterpolation() {
     var tok = advance();
-    return tag(new Tag(tok.val)
-      ..buffer = true);
+    return tag(Tag(tok.val)..buffer = true);
   }
 
-  parseTag(){
+  parseTag() {
     // ast-filter look-ahead
     var i = 2;
     if ('attrs' == lookahead(i).type) ++i;
 
     var _tok = advance();
-    return tag(new Tag(_tok.val)
-      ..selfClosing = _tok.selfClosing);
+    return tag(Tag(_tok.val)..selfClosing = _tok.selfClosing);
   }
 
-  tag(Tag tag){
+  tag(Tag tag) {
     bool dot = false;
 
     tag.line = line();
 
     // (attrs | class | id)*
     out:
-      while (true) {
-        switch (peek().type) {
-          case 'id':
-          case 'class':
-            var _tok = advance();
-            tag.setAttribute(_tok.type, "'${_tok.val}'");
-            continue;
-          case 'attrs':
-            var _tok = advance();
-            Map obj = _tok.attrs;
-            var escaped = _tok.escaped;
-            var names = obj.keys;
+    while (true) {
+      switch (peek().type) {
+        case 'id':
+        case 'class':
+          var _tok = advance();
+          tag.setAttribute(_tok.type, "'${_tok.val}'");
+          continue;
+        case 'attrs':
+          var _tok = advance();
+          Map obj = _tok.attrs;
+          var escaped = _tok.escaped;
+          var names = obj.keys;
 
-            if (_tok.selfClosing) tag.selfClosing = true;
+          if (_tok.selfClosing) tag.selfClosing = true;
 
-            for (var name in names) {
-              var val = obj[name];
-              tag.setAttribute(name, val, escaped[name]);
-            }
-            continue;
-          default:
-            break out;
-        }
+          for (var name in names) {
+            var val = obj[name];
+            tag.setAttribute(name, val, escaped[name]);
+          }
+          continue;
+        default:
+          break out;
       }
+    }
 
     // check immediate '.'
     if ('.' == peek().val) {
@@ -463,8 +451,7 @@ class Parser {
         break;
       case ':':
         advance();
-        tag.block = new Block()
-          ..add(parseExpr());
+        tag.block = Block()..add(parseExpr());
         break;
     }
 
@@ -476,7 +463,9 @@ class Parser {
     // script special-case
     if ('script' == tag.name) {
       var type = tag.getAttribute('type');
-      if (!dot && type != null && 'text/javascript' != type.replaceAll(new RegExp("^['\"]|['\"]\$"), '')) {
+      if (!dot &&
+          type != null &&
+          'text/javascript' != type.replaceAll(RegExp("^['\"]|['\"]\$"), '')) {
         tag.textOnly = false;
       }
     }
@@ -486,7 +475,8 @@ class Parser {
       if (tag.textOnly) {
         if (!dot) {
           logWarn('$filename, line ${peek().line}:');
-          logWarn('Implicit textOnly for `script` and `style` is deprecated.  Use `script.` or `style.` instead.');
+          logWarn(
+              'Implicit textOnly for `script` and `style` is deprecated.  Use `script.` or `style.` instead.');
         }
         lexer.pipeless = true;
         tag.block = parseTextBlock();
@@ -508,4 +498,3 @@ class Parser {
 
   logWarn(String msg) => print(msg);
 }
-

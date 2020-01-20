@@ -1,14 +1,23 @@
 name: jaded
-version: 0.1.9
+version: 0.2.0
 author: Demis Bellot <demis.bellot@gmail.com>
 description: Port of node.js popular Jade view engine for Dart.
 homepage: https://github.com/dartist/jaded
 documentation: https://github.com/visionmedia/jade/blob/master/Readme.md
 environment:
-  sdk: ">=0.8.10+6 <2.0.0"
+  sdk: ">=2.3.0 <3.0.0"
 dependencies:
-  character_parser: ">=0.1.3 < 0.2.0"
-  markdown: ">=0.7.0 <0.8.0"
-  node_shims: ">=0.1.3 < 0.2.0"
+  nodeify_character_parser:
+  markdown:
+  nodeify_node_shims:
+  sass:
+
+dependency_overrides:
+    nodeify_character_parser: 
+        path: "/Users/ericcheney/Desktop/Projects/Dart/nodeify_character_parser"
+    nodeify_node_shims:
+        path: "/Users/ericcheney/Desktop/Projects/Dart/nodeify_node_shims"
+
 dev_dependencies:
-  unittest: ">=0.9.3 <0.10.0"
+  pedantic:
+  test:
