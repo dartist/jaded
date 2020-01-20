@@ -6,11 +6,11 @@ import "dart:isolate";
 import "dart:mirrors";
 import "dart:convert" as CONV;
 
-import "package:nodeify_character_parser/character_parser.dart";
+import "package:character_parser/character_parser.dart";
 import "./runtime.dart" as jade;
 import "package:markdown/markdown.dart";
 import "package:sass/sass.dart" as sass;
-import "package:nodeify_node_shims/node_shims.dart";
+import "package:node_shims/node_shims.dart";
 
 part "src/utils.dart";
 part "src/inline_tags.dart";
