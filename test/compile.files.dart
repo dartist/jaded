@@ -1,6 +1,6 @@
 import "dart:io";
 import "package:jaded/jaded.dart" as jade;
-import "package:nodeify_node_shims/node_shims.dart";
+import "package:node_shims/node_shims.dart";
 import "files/jade.views.dart" as views;
 
 compileFiles(String basedir) {
