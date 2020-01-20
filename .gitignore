@@ -1,6 +1,7 @@
 .DS_Store
 .packages
 .project
+.dart-tool/
 pubspec.lock
 
 .directory
