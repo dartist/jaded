@@ -22,4 +22,16 @@
 
 ## v. 0.2.1 -
 
-### - entire package linted in accordance with rffective_dart and pedantic
+### - entire package linted in accordance with effective_dart and pedantic
+
+----
+
+## v. 0.2.1+1 -
+
+### - minor doc improvements
+
+----
+
+## v. 0.2.1+2 -
+
+### - minor doc improvements - fixed readme links
