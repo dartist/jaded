@@ -1,8 +1,8 @@
 library runtime;
-
+///ignore_for_file:public_member_api_docs,type_annotate_public_apis,omit_local_variable_types,lines_longer_than_80_chars,prefer_interpolation_to_compose_strings
+import 'dart:convert' as conv;
 import 'dart:io';
-import 'dart:math' as Math;
-import 'dart:convert' as CONV;
+import 'dart:math' as math;
 
 var interp;
 List<Debug> debug;
@@ -63,13 +63,13 @@ String attrs(Map obj, [Map escaped]) {
 
       if (val is bool || null == val) {
         if (val != null && val) {
-          if (terse != null && terse)
-            buf.add(key);
-          else
-            buf.add('$key="$key"');
+          if (terse != null && terse){
+            buf.add(key);}
+          else{
+            buf.add('$key="$key"');}
         }
       } else if (0 == key.indexOf('data') && val is! String) {
-        buf.add("$key='${CONV.json.encode(val)}'");
+        buf.add("$key='${conv.json.encode(val)}'");
       } else if ('class' == key) {
         if ((val = escape(joinClasses(val))) != null) {
           if (val != "") buf.add('$key="$val"');
@@ -109,12 +109,12 @@ rethrows(err, filename, lineno) {
   dynamic context = 3;
   String str = File(filename).readAsStringSync();
   List<String> lines = str.split('\n');
-  int start = Math.max(lineno - context, 0);
-  int end = Math.min(lines.length, lineno + context);
+  int start = math.max(lineno - context, 0);
+  int end = math.min(lines.length, lineno + context);
 
   // Error context
   int i = 0;
-  context = lines.sublist(start, end).map((String line) {
+  context = lines.sublist(start, end).map((line) {
     var curr = i++ + start + 1;
     return (curr == lineno ? '  > ' : '    ') + "$curr" + '| ' + line;
   }).join('\n');

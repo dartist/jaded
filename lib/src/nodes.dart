@@ -36,7 +36,7 @@ class _Block extends _Node {
   String mode;
   List<_Node> prepended = [];
   List<_Node> appended = [];
-  Parser parser;
+  _Parser parser;
 
   _Block([node]) {
     if (node != null) nodes.add(node);

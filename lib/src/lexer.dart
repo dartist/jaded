@@ -349,6 +349,7 @@ class _Lexer {
       var _tok = tok('attrs');
       var len = str.length;
       var states = ['key'];
+      //ignore:
       var _colons = colons, escapedAttr, key = '', val = '', quote, c, p;
 
       state() => states[states.length - 1];

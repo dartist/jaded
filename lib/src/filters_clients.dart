@@ -1,3 +1,4 @@
+//ignore_for_file: unused_element
 part of jaded;
 
 var _clientFilters = <String, Function>{};

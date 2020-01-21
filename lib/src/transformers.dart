@@ -1,85 +1,85 @@
 part of jaded;
 
-var transformers = Map<String, Transformer>()
-  ..['cdata'] = CDataTransformer()
-  ..['css'] = CssTransformer()
-  ..['js'] = JsTransformer()
-  ..['md'] = MarkdownTransformer()
-  ..['markdown'] = MarkdownTransformer()
-  ..['sass'] = SassTransformer()
-  ..['scss'] = SassTransformer();
+var _transformers = <String, _Transformer>{}
+  ..['cdata'] = _CDataTransformer()
+  ..['css'] = _CssTransformer()
+  ..['js'] = _JsTransformer()
+  ..['md'] = _MarkdownTransformer()
+  ..['markdown'] = _MarkdownTransformer()
+  ..['sass'] = _SassTransformer()
+  ..['scss'] = _SassTransformer();
 
-class CDataTransformer extends Transformer {
+class _CDataTransformer extends _Transformer {
   String name = 'cdata';
   List engines = ['.']; // `.` means "no dependency"
   String outputFormat = 'xml';
 
-  sync(String str, Map options) {
-    var ret = this.cache(options);
-    return ret != null ? ret : this.cache(options, '<![CDATA[\n$str\n]]>');
+  dynamic sync(String str, Map options) {
+    var ret = cache(options);
+    return ret != null ? ret : cache(options, '<![CDATA[\n$str\n]]>');
   }
 }
 
-class CssTransformer extends Transformer {
+class _CssTransformer extends _Transformer {
   String name = 'css';
   List engines = ['.']; // `.` means "no dependency"
   String outputFormat = 'css';
 
-  sync(String str, Map options) {
-    var ret = this.cache(options);
-    return ret != null ? ret : this.cache(options, str);
+  dynamic sync(String str, Map options) {
+    var ret = cache(options);
+    return ret != null ? ret : cache(options, str);
   }
 }
 
-class JsTransformer extends Transformer {
+class _JsTransformer extends _Transformer {
   String name = 'js';
   List engines = ['.']; // `.` means "no dependency"
   String outputFormat = 'js';
 
-  sync(String str, Map options) {
-    var ret = this.cache(options);
-    return ret != null ? ret : this.cache(options, str);
+  dynamic sync(String str, Map options) {
+    var ret = cache(options);
+    return ret != null ? ret : cache(options, str);
   }
 }
 
-class MarkdownTransformer extends Transformer {
+class _MarkdownTransformer extends _Transformer {
   String name = 'markdown';
   List engines = ['.']; // `.` means "no dependency"
   String outputFormat = 'html';
 
-  sync(String str, Map options) {
-    var ret = this.cache(options);
-    return ret != null ? ret : this.cache(options, markdownToHtml(str));
+  dynamic sync(String str, Map options) {
+    var ret = cache(options);
+    return ret != null ? ret : cache(options, markdownToHtml(str));
   }
 }
 
-class SassTransformer extends Transformer {
+class _SassTransformer extends _Transformer {
   String name = 'sass';
   List engines = ['.'];
   String outputFormat = 'css';
 
-  sync(String str, Map options) {
-    var ret = this.cache(options);
-    return ret != null ? ret : this.cache(options, sass.compileString(str));
+  dynamic sync(String str, Map options) {
+    var ret = cache(options);
+    return ret != null ? ret : cache(options, sass.compileString(str));
   }
 }
 
-abstract class Transformer {
+abstract class _Transformer {
   String outputFormat;
   String name;
   List engines;
   bool isBinary = false;
   dynamic sync(String str, Map options);
-
+  //ignore: prefer_final_fields
   Map _cache = {};
-  cache(Map options, [String str]) {
-    var key = this.runtimeType.toString() +
-        (options != null ? CONV.json.encode(options) : "");
+  dynamic cache(Map options, [String str]) {
+    var key = runtimeType.toString() +
+        (options != null ? conv.json.encode(options) : "");
     if (str != null) _cache[key] = str;
     return _cache[key];
   }
 
-  clone(Map options) {
+  dynamic clone(Map options) {
     var ret = {};
     for (var key in options.keys) {
       ret[key] = options[key];
@@ -104,22 +104,25 @@ abstract class Transformer {
   dynamic renderSync(String str, Map options) {
     if (options == null) options = {};
     options = clone(options);
-    this.loadModule();
-//    if (this._renderSync) {
+    loadModule();
+//    if (_renderSync) {
     return minify(sync((isBinary ? str : fixString(str)), options), options);
-//    } else if (this.sudoSync) {
+//    } else if (sudoSync) {
 //      options.sudoSync = true;
 //      var res, err;
-//      this._renderAsync((this.isBinary ? str : fixString(str)), options, function (e, val) {
+//      _renderAdynamic sync((isBinary 
+//          ? str 
+//          : fixString(str)), options, function (e, val) {
 //        if (e) err = e;
 //        else res = val;
 //      });
 //      if (err) throw err;
-//      else if (res != undefined) return this.minify(res, options);
-//      else if (typeof this.sudoSync === 'string') throw new Error(this.sudoSync.replace(/FILENAME/g, options.filename || ''));
-//      else throw new Error('There was a problem transforming ' + (options.filename || '') + ' syncronously using ' + this.name);
+//      else if (res != undefined) return minify(res, options);
+//      else if (typeof sudoSync === 'string') throw new Error(sudoSync.replace(/FILENAME/g, options.filename || ''));
+//      else throw new Error('There was a problem transforming '
+//        + (options.filename || '') + ' syncronously using ' + name);
 //    } else {
-//      throw new Error(this.name + ' does not support transforming syncronously.');
+//      throw new Error(name + ' does not support transforming syncronously.');
 //    }
   }
 }

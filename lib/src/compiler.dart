@@ -1,5 +1,5 @@
 part of jaded;
-//ignore_for_file: prefer_interpolation_to_compose_strings,lines_longer_than_80_chars,prefer_adjacent_string_concatenation
+//ignore_for_file: prefer_single_quotes
 class _AttrsTuple {
   String buf;
   String escaped;
@@ -94,7 +94,7 @@ class _Compiler {
       }
     }
 
-    str = CONV.json.encode(str);
+    str = conv.json.encode(str);
     str = str.substring(1, str.length - 1);
 
     if (lastBufferedIdx == buf.length) {
@@ -137,7 +137,7 @@ class _Compiler {
   void visit(_Node node) {
     if (debug) {
       var filename = node.filename != null
-          ? CONV.json.encode(node.filename)
+          ? conv.json.encode(node.filename)
           : 'jade.debug[0].filename';
       buf.add(
           'jade.debug.insert(0, new Debug(lineno: ${node.line}, filename: $filename));');
@@ -320,7 +320,7 @@ class _Compiler {
     // pretty print
     if (pp && !tag.isInline) prettyIndent(offset:0, newline:true);
 
-    if ((selfClosing.contains(name) || tag.selfClosing) && !xml) {
+    if ((_selfClosing.contains(name) || tag.selfClosing) && !xml) {
       buffer('<');
       bufferName();
       visitAttributes(tag.attrs);
@@ -468,7 +468,7 @@ class _Compiler {
           "jade.attrs(jade.merge({ ${val.buf} }, attributes), jade.merge(${val.escaped}, escaped, true))");
     } else if (val.constant) {
       buffer(jade.attrs(
-          fakeEval("{ ${val.buf} }"), CONV.json.decode(val.escaped)));
+          fakeEval("{ ${val.buf} }"), conv.json.decode(val.escaped)));
 
 //      throw new ParseError("eval not supported");
 //      eval('var evalBuf={' + val.buf + '};');
@@ -507,7 +507,7 @@ class _Compiler {
     fakeJsonStr = sb.toString();
 
     try {
-      return CONV.json.decode(fakeJsonStr);
+      return conv.json.decode(fakeJsonStr);
     } on Exception catch (e) {
       print("Err parsing fakeEval: $fakeJsonStr / $str: $e");
       return {};
@@ -544,7 +544,7 @@ class _Compiler {
 
     return _AttrsTuple()
       ..buf = buf.join(', ')
-      ..escaped = CONV.json.encode(escaped)
+      ..escaped = conv.json.encode(escaped)
       ..inherits = inherits
       ..constant = constant;
   }

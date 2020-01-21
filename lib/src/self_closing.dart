@@ -1,6 +1,6 @@
 part of jaded;
 
-List<String> selfClosing = const [
+List<String> _selfClosing = const [
   'meta',
   'img',
   'link',

@@ -1,8 +1,8 @@
 part of jaded;
 
-var textOnly = const ['script', 'style'];
+var _textOnly = const ['script', 'style'];
 
-class Parser {
+class _Parser {
   String input;
   String filename;
   String basedir;
@@ -11,20 +11,20 @@ class Parser {
   Map<String, _Block> blocks = {};
   Map<String, _Mixin> mixins = {};
   List contexts;
-  Parser extending;
-  Parser _root;
-  Parser get root => (_root != null ? _root : this);
+  _Parser extending;
+  _Parser _root;
+  _Parser get root => (_root != null ? _root : this);
 
   int _spaces;
 
-  Parser(this.input, {this.filename, this.basedir, this.colons}) {
+  _Parser(this.input, {this.filename, this.basedir, this.colons}) {
     lexer = _Lexer(input, colons: colons);
     contexts = [this];
   }
 
-  Parser createParser(str,
+  _Parser create_Parser(str,
           {String filename, String basedir, bool colons = false}) =>
-      Parser(str, filename: filename, basedir: basedir, colons: colons)
+      _Parser(str, filename: filename, basedir: basedir, colons: colons)
         .._root = root;
 
   List<dynamic> undeclaredVarReferences() {
@@ -35,9 +35,9 @@ class Parser {
     return ret;
   }
 
-  get varDeclarations => lexer.varDeclarations;
+  List<String> get varDeclarations => lexer.varDeclarations;
 
-  Parser context([Parser parser]) {
+  _Parser context([_Parser parser]) {
     if (parser != null) {
       contexts.add(parser);
     } else {
@@ -49,14 +49,14 @@ class Parser {
   _Token advance() => lexer.advance();
 
   void skip(int n) {
-    while (n-- > 0) advance();
+    while (n-- > 0) {advance();}
   }
 
   _Token peek() => lookahead(1);
 
   int line() => lexer.lineno;
 
-  _Token lookahead(n) => lexer.lookahead(n);
+  _Token lookahead(dynamic n) => lexer.lookahead(n);
 
   _Block parse() {
     var parser;
@@ -235,7 +235,7 @@ class Parser {
 
     var str = File(path).readAsStringSync();
     var parser =
-        createParser(str, filename: path, basedir: basedir, colons: colons);
+        create_Parser(str, filename: path, basedir: basedir, colons: colons);
 
     parser.blocks = blocks;
     parser.contexts = contexts;
@@ -294,7 +294,7 @@ class Parser {
     }
 
     var parser =
-        createParser(str, filename: path, basedir: basedir, colons: colons);
+        create_Parser(str, filename: path, basedir: basedir, colons: colons);
     parser.blocks = merge(<String, _Block>{}, blocks);
 
     parser.mixins = mixins;
@@ -458,7 +458,7 @@ class Parser {
     // newline*
     while ('newline' == peek().type) advance();
 
-    tag.textOnly = tag.textOnly || textOnly.contains(tag.name);
+    tag.textOnly = tag.textOnly || _textOnly.contains(tag.name);
 
     // script special-case
     if ('script' == tag.name) {

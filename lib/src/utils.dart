@@ -1,6 +1,6 @@
 part of jaded;
-
-merge<k, v>(Map a, Map b) {
+/// merge multiple Map objects into one Map
+Map merge<k, v>(Map a, Map b) {
   if (a.runtimeType != b.runtimeType) {
     throw TypeError();
   }
@@ -25,7 +25,7 @@ merge<k, v>(Map a, Map b) {
         merge(a[key], b[key]);
       } else {
         var temp = a[key];
-        a[key] = List()..add(temp);
+        a[key] = <dynamic>[]..add(temp);
         b[key] is List ? a[key].addAll(b[key]) : a[key].add(b[key]);
       }
     } else {

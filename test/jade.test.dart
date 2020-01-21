@@ -54,10 +54,10 @@ main() {
       case 0:
 // Comment out tests you dont want to run
 // Uncomment groups to run
-      // case 1:
-      // case 2:
-      // case 3:
-      // case 4:
+      case 1:
+      case 2:
+      case 3:
+      case 4:
       case 5:
         group(a, fn);
     }

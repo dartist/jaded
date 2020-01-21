@@ -3,7 +3,8 @@ version: 0.2.0
 ÷author: Demis Bellot <demis.bellot@gmail.com>
 description: Port of node.js popular Jade view engine for Dart.
 homepage: https://github.com/dartist/jaded
-documentation: https://github.com/visionmedia/jade/blob/master/Readme.md
+documentation: https://pugjs.org/ 
+#https://github.com/visionmedia/jade/blob/master/Readme.md
 environment:
   sdk: ">=2.3.0 <3.0.0"
 dependencies:

@@ -6,8 +6,8 @@ dynamic _filter(String name, String str, Map options) {
   var res;
   if (_filters[name] is Function){
     res = _filters[name](str, options);}
-  else if (transformers[name] != null) {
-    var transformer = transformers[name];
+  else if (_transformers[name] != null) {
+    var transformer = _transformers[name];
     res = transformer.renderSync(str, options);
     if (transformer.outputFormat == 'js') {
       res = '<script type="text/javascript">\n$res</script>';
@@ -22,5 +22,5 @@ dynamic _filter(String name, String str, Map options) {
   return res;
 }
 
-_filterExists(String name, [String str, Map options]) =>
-    _filters[name] is Function || transformers[name] != null;
+bool _filterExists(String name, [String str, Map options]) =>
+    _filters[name] is Function || _transformers[name] != null;
