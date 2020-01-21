@@ -52,7 +52,7 @@ String parse(String str,
       Parser(str, filename: filename, basedir: basedir, colons: colons);
 
   // Compile
-  var compiler = Compiler(parser.parse(),
+  var compiler = _Compiler(parser.parse(),
       filename: filename,
       compileDebug: compileDebug,
       pretty: pretty,

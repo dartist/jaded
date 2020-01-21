@@ -1,8 +1,9 @@
+//ignore_for_file: non_constant_identifier_names,missing_return,prefer_interpolation_to_compose_strings,lines_longer_than_80_chars
 part of jaded;
 
-var parseJSExpression = parseMax;
+var _parseJSExpression = parseMax;
 
-class Token {
+class _Token {
   String type;
   int line;
   dynamic val;
@@ -16,15 +17,15 @@ class Token {
   String code;
   Map attrs;
 
-  Token([this.type, this.line, this.val]);
+  _Token([this.type, this.line, this.val]);
 }
 
-class Lexer {
+class _Lexer {
   String str;
 
   String input;
   bool colons;
-  List<Token> deferredTokens = [];
+  List<_Token> deferredTokens = []; //ignore: prefer_final_fields
   int lastIndents = 0;
   int lineno = 1;
   List stash = [];
@@ -48,15 +49,16 @@ class Lexer {
     if (!varReferences.contains(varName)) varReferences.add(varName);
   }
 
-  Lexer(this.str, {this.colons = false}) {
+  _Lexer(this.str, {this.colons = false}) {
     input = str.replaceAll(RegExp(r"\r\n|\r"), '\n');
   }
 
-  Token tok(String type, [val]) => Token(type, lineno, val);
+  _Token tok(String type, [dynamic val]) => _Token(type, lineno, val);
 
-  consume(int len) => input = input.substring(len);
-
-  Token scan(RegExp regexp, String type) {
+  String consume(int len) => input = input.substring(len);
+  
+  _Token scan(RegExp regexp, String type) {
+    
     List<String> captures;
     if ((captures = exec(regexp, input)) != null) {
       consume(captures[0].length);
@@ -64,34 +66,36 @@ class Lexer {
     }
   }
 
-  defer(Token tok) => deferredTokens.add(tok);
+  void defer(_Token tok) => deferredTokens.add(tok);
 
-  lookahead(int n) {
+  dynamic lookahead(int n) {
     var fetch = n - stash.length;
-    while (fetch-- > 0) stash.add(next());
+    while (fetch-- > 0) {
+      stash.add(next());
+    }
     return stash[--n];
   }
 
   SrcPosition bracketExpression([int skip = 0]) {
     var start = input[skip];
-    if (start != '(' && start != '{' && start != '[')
+    if (start != '(' && start != '{' && start != '[') {
       throw ParseError('unrecognized start character');
+    }
     var end = ({'(': ')', '{': '}', '[': ']'})[start];
-    var range = parseJSExpression(input, start: skip + 1);
-    if (input[range.end] != end)
-      throw ParseError('start character ' +
-          start +
-          ' does not match end character ' +
-          input[range.end]);
+    var range = _parseJSExpression(input, start: skip + 1);
+    if (input[range.end] != end) {
+      throw ParseError(
+          '''start character $start does not match end character ${input[range.end]}''');
+    }
     return range;
   }
 
-  Token stashed() => stash.length > 0 ? stash.removeAt(0) : null;
+  _Token stashed() => stash.length > 0 ? stash.removeAt(0) : null;
 
-  Token deferred() =>
+  _Token deferred() =>
       deferredTokens.length > 0 ? deferredTokens.removeAt(0) : null;
 
-  Token eos() {
+  _Token eos() {
     if (input.length > 0) return null;
     if (indentStack.length > 0) {
       indentStack.removeAt(0);
@@ -100,8 +104,8 @@ class Lexer {
       return tok('eos');
     }
   }
-
-  blank() {
+  
+  _Token blank() {
     List<String> captures;
     if ((captures = exec(RegExp(r"^\n *\n"), input)) != null) {
       consume(captures[0].length - 1);
@@ -109,39 +113,40 @@ class Lexer {
       return pipeless ? tok('text', '') : next();
     }
   }
-
-  comment() {
+  
+  _Token comment() {
     List<String> captures;
     if ((captures = exec(RegExp(r"^ *\/\/(-)?([^\n]*)"), input)) != null) {
       consume(captures[0].length);
       return tok('comment', captures[2])..buffer = '-' != captures[1];
     }
   }
-
-  interpolation() {
+  
+  _Token interpolation() {
     if (RegExp(r"^#\{").hasMatch(input)) {
       var match;
       try {
         match = bracketExpression(1);
-      } catch (ex) {
-        return null; //not an interpolation expression, just an unmatched open interpolation
+      } on Exception {
+        return null; 
+        //not an interpolation expression, just an unmatched open interpolation
       }
       consume(match.end + 1);
       return tok('interpolation', match.src);
     }
   }
-
-  Token tag() {
+  
+  _Token tag() {
     List<String> captures;
     if ((captures = exec(RegExp(r"^(\w[-:\w]*)(\/?)"), input)) != null) {
       consume(captures[0].length);
-      Token _tok;
-      String name = captures[1];
+      _Token _tok;
+      var name = captures[1];
       if (':' == name[name.length - 1]) {
         name = name.substring(0, name.length - 1);
         _tok = tok('tag', name);
         defer(tok(':'));
-        while (' ' == input[0]) input = input.substring(1);
+        while (' ' == input[0]) {input = input.substring(1);}
       } else {
         _tok = tok('tag', name);
       }
@@ -150,19 +155,19 @@ class Lexer {
     }
   }
 
-  filter() => scan(RegExp(r"^:(\w+)"), 'filter');
+  _Token filter() => scan(RegExp(r"^:(\w+)"), 'filter');
 
-  doctype() => scan(RegExp(r"^(?:!!!|doctype) *([^\n]+)?"), 'doctype');
+  _Token doctype() => scan(RegExp(r"^(?:!!!|doctype) *([^\n]+)?"), 'doctype');
 
-  id() => scan(RegExp(r"^#([\w-]+)"), 'id');
+  _Token id() => scan(RegExp(r"^#([\w-]+)"), 'id');
 
-  className() => scan(RegExp(r"^\.([\w-]+)"), 'class');
+  _Token className() => scan(RegExp(r"^\.([\w-]+)"), 'class');
 
-  text() => scan(RegExp(r"^(?:\| ?| ?)?([^\n]+)"), 'text');
+  _Token text() => scan(RegExp(r"^(?:\| ?| ?)?([^\n]+)"), 'text');
+  
+  _Token Extends() => scan(RegExp(r"^extends? +([^\n]+)"), 'extends');
 
-  Extends() => scan(RegExp(r"^extends? +([^\n]+)"), 'extends');
-
-  prepend() {
+  _Token prepend() {
     List<String> captures;
     if ((captures = exec(RegExp(r"^prepend +([^\n]+)"), input)) != null) {
       consume(captures[0].length);
@@ -171,7 +176,7 @@ class Lexer {
     }
   }
 
-  append() {
+  _Token append() {
     List<String> captures;
     if ((captures = exec(RegExp(r"^append +([^\n]+)"), input)) != null) {
       consume(captures[0].length);
@@ -180,7 +185,7 @@ class Lexer {
     }
   }
 
-  block() {
+  _Token block() {
     List<String> captures;
     if ((captures = exec(
             RegExp(r"^block\b *(?:(prepend|append) +)?([^\n]*)"), input)) !=
@@ -194,17 +199,17 @@ class Lexer {
     }
   }
 
-  yield() => scan(RegExp(r"^yield *"), 'yield');
+  _Token yield() => scan(RegExp(r"^yield *"), 'yield');
 
-  include() => scan(RegExp(r"^include +([^\n]+)"), 'include');
+  _Token include() => scan(RegExp(r"^include +([^\n]+)"), 'include');
 
-  Case() => scan(RegExp(r"^case +([^\n]+)"), 'case');
+  _Token Case() => scan(RegExp(r"^case +([^\n]+)"), 'case');
 
-  when() => scan(RegExp(r"^when +([^:\n]+)"), 'when');
+  _Token when() => scan(RegExp(r"^when +([^:\n]+)"), 'when');
 
-  Default() => scan(RegExp(r"^default *"), 'default');
+  _Token Default() => scan(RegExp(r"^default *"), 'default');
 
-  assignment() {
+  _Token assignment() {
     List<String> captures;
     //DB original: ^(\w+) += *([^;\n]+)( *;? *)
     if ((captures = exec(RegExp(r"^(\w+) += *([^\n]+)( *;? *)"), input)) !=
@@ -223,7 +228,7 @@ class Lexer {
     }
   }
 
-  call() {
+  _Token call() {
     List<String> captures;
     if ((captures = exec(RegExp(r"^\+([-\w]+)"), input)) != null) {
       consume(captures[0].length);
@@ -238,7 +243,7 @@ class Lexer {
             consume(range.end + 1);
             _tok.args = range.src;
           }
-        } catch (ex) {
+        } on Exception {
           //not a bracket expcetion, just unmatched open parens
         }
       }
@@ -247,7 +252,7 @@ class Lexer {
     }
   }
 
-  mixin() {
+  _Token mixin() {
     List<String> captures;
     if ((captures = exec(RegExp(r"^mixin +([-\w]+)(?: *\((.*)\))?"), input)) !=
         null) {
@@ -260,7 +265,7 @@ class Lexer {
     }*/
   }
 
-  conditional() {
+  _Token conditional() {
     List<String> captures;
     if ((captures =
             exec(RegExp(r"^(if|unless|else if|else)\b([^\n]*)"), input)) !=
@@ -288,7 +293,7 @@ class Lexer {
     }
   }
 
-  While() {
+  _Token While() {
     List<String> captures;
     if ((captures = exec(RegExp(r"^while +([^\n]+)"), input)) != null) {
       consume(captures[0].length);
@@ -296,7 +301,7 @@ class Lexer {
     }
   }
 
-  each() {
+  _Token each() {
     List<String> captures;
     if ((captures = exec(
             RegExp(
@@ -315,7 +320,7 @@ class Lexer {
     }
   }
 
-  code() {
+  _Token code() {
     List<String> captures;
     if ((captures = exec(RegExp(r"^(!?=|-)[ \t]*([^\n]+)"), input)) != null) {
       consume(captures[0].length);
@@ -337,13 +342,13 @@ class Lexer {
     }
   }
 
-  attrs() {
+  _Token attrs() {
     if ('(' == input.substring(0, 1)) {
-      int index = bracketExpression().end;
-      String str = input.substring(1, index);
-      Token _tok = tok('attrs');
-      int len = str.length;
-      List states = ['key'];
+      var index = bracketExpression().end;
+      var str = input.substring(1, index);
+      var _tok = tok('attrs');
+      var len = str.length;
+      var states = ['key'];
       var _colons = colons, escapedAttr, key = '', val = '', quote, c, p;
 
       state() => states[states.length - 1];
@@ -351,22 +356,22 @@ class Lexer {
       interpolate(String attr) {
         return attr.replaceAllMapped(RegExp(r"(\\)?#\{(.+)"), (Match match) {
           //_, escape, expr
-          String _ = match.group(0);
-          String escape = match.group(1);
-          String expr = match.group(2);
+          var _ = match.group(0);
+          var escape = match.group(1);
+          var expr = match.group(2);
 
           if (escape != null) return _;
           try {
-            var range = parseJSExpression(expr);
-            if (expr[range.end] != '}')
-              return _.substring(0, 2) + interpolate(_.substring(2));
+            var range = _parseJSExpression(expr);
+            if (expr[range.end] != '}'){
+              return _.substring(0, 2) + interpolate(_.substring(2));}
             return quote +
                 " + (\"\${" +
                 range.src +
                 "}\") + " +
                 quote +
                 interpolate(expr.substring(range.end + 1));
-          } catch (ex) {
+          } on Exception {
             return _.substring(0, 2) + interpolate(_.substring(2));
           }
         });
@@ -493,7 +498,7 @@ class Lexer {
     }
   }
 
-  indent() {
+  _Token indent() {
     List<String> captures;
     RegExp re;
 
@@ -518,7 +523,7 @@ class Lexer {
 
     if (captures != null) {
       var _tok;
-      int indents = captures[1].length;
+      var indents = captures[1].length;
 
       ++lineno;
       consume(indents + 1);
@@ -553,7 +558,7 @@ class Lexer {
     }
   }
 
-  pipelessText() {
+  _Token pipelessText() {
     if (pipeless) {
       if (input.startsWith('\n')) return null;
       var i = input.indexOf('\n');
@@ -564,11 +569,11 @@ class Lexer {
     }
   }
 
-  Token colon() => scan(RegExp(r"^: *"), ':');
+  _Token colon() => scan(RegExp(r"^: *"), ':');
+  //ignore: unnecessary_lambdas
+  _Token advance() => or(stashed(), ()=>next());
 
-  Token advance() => or(stashed(), () => next());
-
-  Token next() {
+  _Token next() {
     var ret;
     if ((ret = deferred()) != null) return ret;
     if ((ret = blank()) != null) return ret;

@@ -7,7 +7,7 @@ class Parser {
   String filename;
   String basedir;
   bool colons;
-  Lexer lexer;
+  _Lexer lexer;
   Map<String, Block> blocks = {};
   Map<String, Mixin> mixins = {};
   List contexts;
@@ -18,7 +18,7 @@ class Parser {
   int _spaces;
 
   Parser(this.input, {this.filename, this.basedir, this.colons}) {
-    lexer = Lexer(input, colons: colons);
+    lexer = _Lexer(input, colons: colons);
     contexts = [this];
   }
 
@@ -46,17 +46,17 @@ class Parser {
     return null;
   }
 
-  Token advance() => lexer.advance();
+  _Token advance() => lexer.advance();
 
   void skip(int n) {
     while (n-- > 0) advance();
   }
 
-  Token peek() => lookahead(1);
+  _Token peek() => lookahead(1);
 
   int line() => lexer.lineno;
 
-  Token lookahead(n) => lexer.lookahead(n);
+  _Token lookahead(n) => lexer.lookahead(n);
 
   Block parse() {
     var parser;
@@ -289,7 +289,7 @@ class Parser {
     if ('.jade' != path.substring(path.length - 5, path.length)) {
       str = str.replaceAll(RegExp(r"\r"), '');
       var ext = extname(path).substring(1);
-      if (filterExists(ext)) str = filter(ext, str, {"filename": path});
+      if (_filterExists(ext)) {str = _filter(ext, str, {"filename": path});}
       return Literal(str);
     }
 

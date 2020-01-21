@@ -1,16 +1,16 @@
 part of jaded;
 
-var clientFilters = Map<String, Function>();
+var _clientFilters = <String, Function>{};
 
-dynamic clientFilter(String name, String str, Map options) {
+dynamic _clientFilter(String name, String str, Map options) {
   var res;
-  if (clientFilters[name] is Function)
-    res = clientFilters[name](str, options);
-  else
-    throw ParseError('unknown filter ":$name"');
+  if (_clientFilters[name] is Function){
+    res = _clientFilters[name](str, options);}
+  else{
+    throw ParseError('unknown filter ":$name"');}
 
   return res;
 }
 
-clientFilterExists(String name, [String str, Map options]) =>
-    clientFilters[name] is Function;
+bool _clientFilterExists(String name, [String str, Map options]) =>
+    _clientFilters[name] is Function;

@@ -1,6 +1,6 @@
 part of jaded;
 
-var doctypes = const {
+var _doctypes = const {
   '5': r'<!DOCTYPE html>',
   'default': r'<!DOCTYPE html>',
   'xml': r'<?xml version="1.0" encoding="utf-8" ?>',

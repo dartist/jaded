@@ -1,26 +1,26 @@
 part of jaded;
 
-var filters = Map<String, Function>();
+var _filters = <String, Function>{};
 
-dynamic filter(String name, String str, Map options) {
+dynamic _filter(String name, String str, Map options) {
   var res;
-  if (filters[name] is Function)
-    res = filters[name](str, options);
+  if (_filters[name] is Function){
+    res = _filters[name](str, options);}
   else if (transformers[name] != null) {
-    Transformer transformer = transformers[name];
+    var transformer = transformers[name];
     res = transformer.renderSync(str, options);
     if (transformer.outputFormat == 'js') {
-      res = '<script type="text/javascript">\n' + res + '</script>';
+      res = '<script type="text/javascript">\n$res</script>';
     } else if (transformer.outputFormat == 'css') {
-      res = '<style type="text/css">' + res + '</style>';
+      res = '<style type="text/css">$res</style>';
     } else if (transformer.outputFormat == 'xml') {
       res = res.replaceAll("'", '&#39;');
     }
-  } else
-    throw ParseError('unknown filter ":$name"');
+  } else{
+    throw ParseError('unknown filter ":$name"');}
 
   return res;
 }
 
-filterExists(String name, [String str, Map options]) =>
-    filters[name] is Function || transformers[name] != null;
+_filterExists(String name, [String str, Map options]) =>
+    _filters[name] is Function || transformers[name] != null;

@@ -227,7 +227,7 @@ class Tag extends Attrs {
       ..textOnly = textOnly;
   }
 
-  get isInline => inlineTags.contains(this.name);
+  get isInline => _inlineTags.contains(this.name);
 
   bool canInline() {
     var nodes = block.nodes;

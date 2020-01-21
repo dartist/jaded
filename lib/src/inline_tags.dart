@@ -1,6 +1,6 @@
 part of jaded;
 
-const inlineTags = [
+const _inlineTags = [
   'a',
   'abbr',
   'acronym',
