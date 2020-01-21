@@ -1,30 +1,30 @@
 library jaded;
 
-import "dart:async";
-import "dart:convert" as conv;
-import "dart:io";
-import "dart:isolate";
-import "dart:mirrors";
+import 'dart:async';
+import 'dart:convert' as conv;
+import 'dart:io';
+import 'dart:isolate';
+import 'dart:mirrors';
 
-import "package:character_parser/character_parser.dart";
-import "package:markdown/markdown.dart";
-import "package:node_shims/node_shims.dart";
-import "package:sass/sass.dart" as sass;
+import 'package:character_parser/character_parser.dart';
+import 'package:markdown/markdown.dart';
+import 'package:node_shims/node_shims.dart';
+import 'package:sass/sass.dart' as sass;
 
-import "./runtime.dart" as jade;
+import './runtime.dart' as jade;
 
-part "src/utils.dart";
-part "src/inline_tags.dart";
-part "src/transformers.dart";
-part "src/filters.dart";
-part "src/filters_clients.dart";
-part "src/doctypes.dart";
-part "src/self_closing.dart";
+part 'src/utils.dart';
+part 'src/inline_tags.dart';
+part 'src/transformers.dart';
+part 'src/filters.dart';
+part 'src/filters_clients.dart';
+part 'src/doctypes.dart';
+part 'src/self_closing.dart';
 
-part "src/nodes.dart";
-part "src/lexer.dart";
-part "src/parser.dart";
-part "src/compiler.dart";
+part 'src/nodes.dart';
+part 'src/lexer.dart';
+part 'src/parser.dart';
+part 'src/compiler.dart';
 
 Map<String, RenderAsync> _renderCache = <String, RenderAsync>{};
 Map<String, String> _fileCache = <String, String>{};
@@ -47,7 +47,7 @@ String parse(String str,
     bool debug = false,
     bool colons = false,
     bool autoSemicolons = true}) {
-  if (locals == null) locals = {};
+  locals ??= {};
 
   // Parse
   var parser =
@@ -68,7 +68,7 @@ String parse(String str,
   if (debug) {
     print('\nCompiled Function:\n\n\033[90m%s\033[0m');
     print(str);
-    print(js.replaceAll(RegExp("^", multiLine: true), '  '));
+    print(js.replaceAll(RegExp('^', multiLine: true), '  '));
   }
 
   //DB: Undeclared references are placeholders
@@ -79,18 +79,18 @@ String parse(String str,
   }
 
   //DB: write any var declarations at the top
-  if (!parser.varDeclarations.isEmpty) {
-    sb.write("var ${(parser.varDeclarations).join(', ')};\n");
+  if (parser.varDeclarations.isNotEmpty) {
+    sb.write('var ${(parser.varDeclarations).join(', ')};\n');
   }
 
-  return """
+  return '''
 $sb
 var buf = [];
 var self = locals;
 if (self == null) self = {};
 $js;
-return buf.join("");
-""";
+return buf.join('');
+''';
 }
 
 dynamic _stripBOM(String str) =>
@@ -146,19 +146,19 @@ String _compileBody(String str,
 
   if (!compileDebug) return fnBody;
 
-  return """
-jade.debug = [Debug(lineno: 1, filename: ${filename != null ? conv.json.encode(filename) : "null"})];
+  return '''
+jade.debug = [Debug(lineno: 1, filename: ${filename != null ? conv.json.encode(filename) : 'null'})];
 try {
 $fnBody
 } catch (err) {
   jade.rethrows(err, jade.debug[0].filename, jade.debug[0].lineno);
 }
-""";
+''';
 }
 
 RenderAsync _runCompiledDartInIsolate(String fn) {
 //Execute fn within Isolate. Shim Jade objects.
-  var isolateWrapper = """
+  var isolateWrapper = '''
 import 'dart:isolate';
 import 'package:jaded/runtime.dart';
 import 'package:jaded/runtime.dart' as jade;
@@ -176,25 +176,23 @@ main(List args, SendPort replyTo) {
   var html = render(json.decode(args.first));
     replyTo.send(html.toString());
 }
-""";
+''';
 
   //Hack: Write compiled dart out to a static file
-  var absolutePath = "${Directory.current.path}/jaded.views.dart";
+  var absolutePath = '${Directory.current.path}/jaded.views.dart';
   File(absolutePath).writeAsStringSync(isolateWrapper);
 
   //Re-read back generated file inside an isolate
   Future<String> renderAsync([Map locals = const {}]) {
     var rPort = ReceivePort();
     var isolate = Isolate.spawnUri(
-        Uri.file(absolutePath), 
-        [conv.json.encode(locals)], 
-        rPort.sendPort, 
-        errorsAreFatal:true);
+        Uri.file(absolutePath), [conv.json.encode(locals)], rPort.sendPort,
+        errorsAreFatal: true);
 
     var completer = Completer<String>();
 
     isolate.catchError((_) {
-      // print("isolate error: ${err}");
+      // print('isolate error: ${err}');
       completer.completeError;
     });
 
@@ -212,6 +210,7 @@ main(List args, SendPort replyTo) {
 
   return renderAsync;
 }
+
 ///render a String of Pug/Jade
 Future<String> render(String str,
     {Map locals,
@@ -228,7 +227,7 @@ Future<String> render(String str,
   // cache requires .filename
   if (cache && filename == null) {
     completer.completeError(
-        ParseError('the "filename" option is required for caching'));
+        ParseError("the 'filename' option is required for caching"));
   } else {
     RenderAsync compileFn() => compile(str,
         locals: locals,
@@ -259,13 +258,14 @@ Future<String> render(String str,
       renderAsync(locals).then((html) {
         completer.complete(html);
         renderAsync(
-            {"__shutdown": true}); //When not caching, close port after use.
+            {'__shutdown': true}); //When not caching, close port after use.
       }).catchError(completer.completeError);
     }
   }
 
   return completer.future;
 }
+
 ///render a Pug/Jade file
 Future<String> renderFile(String path,
     {Map locals,
@@ -281,7 +281,7 @@ Future<String> renderFile(String path,
 
   try {
     var str = cache
-        ? _fileCache[key] != null
+        ? _fileCache[key].isNotEmpty
             ? _fileCache[key]
             : (_fileCache[key] = File(path).readAsStringSync())
         : File(path).readAsStringSync();
@@ -300,49 +300,51 @@ Future<String> renderFile(String path,
     return (Completer<String>()..completeError(err)).future;
   }
 }
+
 ///render a specified set of Pug/Jade files into a map of dart funtions
 String renderFiles(String basedir, Iterable<dynamic> files,
-    {String templatesMapName = "JADE_TEMPLATES"}) {
-  if (!_isVarExpr(templatesMapName)){
+    {String templatesMapName = 'JADE_TEMPLATES'}) {
+  if (!_isVarExpr(templatesMapName)) {
     throw ArgumentError("'$templatesMapName' is not a valid variable name");
-}
-  var libName = basedir == "."
+  }
+  var libName = basedir == '.'
       ? Directory.current.path.split(Platform.pathSeparator).last
       : basedir.split(Platform.pathSeparator).last;
 
-  if (libName.length == 0) libName = "templates";
+  if (libName.isEmpty) libName = 'templates';
 
-  libName = libName.replaceAll(RegExp(r"[^a-zA-Z0-9_\$]"), "_");
+  libName = libName.replaceAll(RegExp(r'[^a-zA-Z0-9_\$]'), '_');
 
   var sb = StringBuffer()
-    ..writeln("library jade_$libName;")
+    ..writeln('library jade_$libName;')
     ..writeln("import 'package:jaded/runtime.dart';")
     ..writeln("import 'package:jaded/runtime.dart' as jade;")
-    ..writeln("Map<String,Function> $templatesMapName = {");
-  
+    ..writeln('Map<String,Function> $templatesMapName = {');
+
   void _feFunc(dynamic x) {
     var str = x.readAsStringSync();
     var fnBody = _compileBody(str, filename: x.path, basedir: basedir);
     var pathWebStyle = x.path.replaceAll('\\', '/');
-    sb.write("""
+    sb.write('''
 '$pathWebStyle': ([Map locals]){///jade-begin
   if (locals == null) locals = {};
   $fnBody
 },///jade-end
-""");
+''');
   }
 
   files.forEach(_feFunc);
 
-  sb.writeln("};");
+  sb.writeln('};');
 
   var tmpls = sb.toString();
   return tmpls;
 }
+
 ///render a directory of Pug/Jade files
 String renderDirectory(String basedir,
-    {String templatesMapName = "JADE_TEMPLATES",
-    String ext = ".jade",
+    {String templatesMapName = 'JADE_TEMPLATES',
+    String ext = '.jade',
     bool recursive = true,
     bool followLinks = false}) {
   var files = Directory(basedir)

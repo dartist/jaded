@@ -1,5 +1,7 @@
 part of jaded;
 
+//required for dynamic invocations
+//ignore_for_file: non_constant_identifier_names
 var _textOnly = const ['script', 'style'];
 
 class _Parser {
@@ -13,7 +15,7 @@ class _Parser {
   List contexts;
   _Parser extending;
   _Parser _root;
-  _Parser get root => (_root != null ? _root : this);
+  _Parser get root => (_root ?? this);
 
   int _spaces;
 
@@ -22,7 +24,7 @@ class _Parser {
     contexts = [this];
   }
 
-  _Parser create_Parser(str,
+  _Parser create_Parser(String str,
           {String filename, String basedir, bool colons = false}) =>
       _Parser(str, filename: filename, basedir: basedir, colons: colons)
         .._root = root;
@@ -30,7 +32,9 @@ class _Parser {
   List<dynamic> undeclaredVarReferences() {
     var ret = [];
     for (var ref in lexer.varReferences) {
-      if (!lexer.varDeclarations.contains(ref)) ret.add(ref);
+      if (!lexer.varDeclarations.contains(ref)) {
+        ret.add(ref);
+      }
     }
     return ret;
   }
@@ -49,7 +53,9 @@ class _Parser {
   _Token advance() => lexer.advance();
 
   void skip(int n) {
-    while (n-- > 0) {advance();}
+    while (n-- > 0) {
+      advance();
+    }
   }
 
   _Token peek() => lookahead(1);
@@ -76,14 +82,16 @@ class _Parser {
       context();
 
       // hoist mixins
-      for (var name in mixins.keys) ast.unshift(mixins[name]);
+      for (var name in mixins.keys) {
+        ast.unshift(mixins[name]);
+      }
       return ast;
     }
 
     return block;
   }
 
-  expect(type) {
+  dynamic expect(String type) {
     if (peek().type == type) {
       return advance();
     } else {
@@ -91,9 +99,9 @@ class _Parser {
     }
   }
 
-  accept(type) => peek().type == type ? advance() : null;
+  _Token accept(String type) => peek().type == type ? advance() : null;
 
-  parseExpr() {
+  dynamic parseExpr() {
     switch (peek().type) {
       case 'tag':
         return parse_Tag();
@@ -168,7 +176,9 @@ class _Parser {
     var tok = expect('code');
     var node = _Code(tok.val, tok.buffer, tok.escape)..line = line();
     var i = 1;
-    while (lookahead(i) != null && 'newline' == lookahead(i).type) ++i;
+    while (lookahead(i) != null && 'newline' == lookahead(i).type) {
+      ++i;
+    }
     var _block = 'indent' == lookahead(i).type;
     if (_block) {
       skip(i - 1);
@@ -179,7 +189,7 @@ class _Parser {
 
   _Node parse_Comment() {
     var tok = expect('comment');
-    _Node node = 'indent' == peek().type
+    var node = 'indent' == peek().type
         ? _Block_Comment(tok.val, block(), tok.buffer)
         : _Comment(tok.val, tok.buffer);
 
@@ -201,9 +211,9 @@ class _Parser {
       ..line = line();
   }
 
-  Each parseEach() {
+  _Each parseEach() {
     var tok = expect('each');
-    var node = Each(tok.code, tok.val, tok.key)
+    var node = _Each(tok.code, tok.val, tok.key)
       ..line = line()
       ..block = block();
     if (peek().type == 'code' && peek().val == 'else') {
@@ -213,25 +223,29 @@ class _Parser {
     return node;
   }
 
-  String resolvePath(String path, purpose) {
-    if (path[0] != '/' && filename == null)
-      throw ParseError(
-          'the "filename" option is required to use "$purpose" with "relative" paths');
-
-    if (path[0] == '/' && basedir == null)
-      throw ParseError(
-          'the "basedir" option is required to use "$purpose" with "absolute" paths');
-
+  String resolvePath(String path, dynamic purpose) {
+    if (path[0] != '/' && filename == null) {
+      throw ParseError('''
+          the "filename" option is required to use "$purpose" with "relative" paths''');
+    }
+    if (path[0] == '/' && basedir == null) {
+      throw ParseError('''
+          the "basedir" option is required to use "$purpose" with "absolute" paths''');
+    }
     path = join([path[0] == '/' ? basedir : dirname(filename), path]);
 
-    if (basename(path).indexOf('.') == -1) path += '.jade';
+    if (!basename(path).contains('.')) {
+      path += '.jade';
+    }
 
     return path;
   }
 
   _Literal parseExtends() {
     var path = resolvePath(expect('extends').val.trim(), 'extends');
-    if ('.jade' != path.substring(path.length - 5)) path += '.jade';
+    if ('.jade' != path.substring(path.length - 5)) {
+      path += '.jade';
+    }
 
     var str = File(path).readAsStringSync();
     var parser =
@@ -253,7 +267,9 @@ class _Parser {
     _block = 'indent' == peek().type ? block() : _Block(_Literal(''));
 
     _Block prev = or(blocks[name], () => _Block());
-    if (prev.mode == 'replace') return blocks[name] = prev;
+    if (prev.mode == 'replace') {
+      return blocks[name] = prev;
+    }
 
     var all_Nodes = prev.prepended.toList()
       ..addAll(_block.nodes)
@@ -287,9 +303,11 @@ class _Parser {
     // non-jade
     var str = File(path).readAsStringSync();
     if ('.jade' != path.substring(path.length - 5, path.length)) {
-      str = str.replaceAll(RegExp(r"\r"), '');
+      str = str.replaceAll(RegExp(r'\r'), '');
       var ext = extname(path).substring(1);
-      if (_filterExists(ext)) {str = _filter(ext, str, {"filename": path});}
+      if (_filterExists(ext)) {
+        str = _filter(ext, str, {'filename': path});
+      }
       return _Literal(str);
     }
 
@@ -322,7 +340,9 @@ class _Parser {
       mixin.block.add(mixin.code);
       mixin.code = null;
     }
-    if (mixin.block.isEmpty) mixin.block = null;
+    if (mixin.block.isEmpty) {
+      mixin.block = null;
+    }
     return mixin;
   }
 
@@ -335,7 +355,7 @@ class _Parser {
     // definition
     if ('indent' == peek().type) {
       //DB: mixins can be overwritten
-      root.lexer.addVarDeclaration(name + "_mixin");
+      root.lexer.addVarDeclaration('${name}_mixin');
 
       mixin = _Mixin(name, args, block(), false);
       mixins[name] = mixin;
@@ -350,7 +370,7 @@ class _Parser {
     var block = _Block();
     block.line = line();
     var spaces = expect('indent').val;
-    if (null == _spaces) _spaces = spaces;
+    _spaces ??= spaces;
     var indent = List.filled(spaces - _spaces + 1, '').join(' ');
     while ('outdent' != peek().type) {
       switch (peek().type) {
@@ -389,22 +409,24 @@ class _Parser {
     return block;
   }
 
-  parseInterpolation() {
+  dynamic parseInterpolation() {
     var tok = advance();
     return tag(_Tag(tok.val)..buffer = true);
   }
 
-  parse_Tag() {
+  dynamic parse_Tag() {
     // ast-filter look-ahead
     var i = 2;
-    if ('attrs' == lookahead(i).type) ++i;
+    if ('attrs' == lookahead(i).type) {
+      ++i;
+    }
 
     var _tok = advance();
     return tag(_Tag(_tok.val)..selfClosing = _tok.selfClosing);
   }
 
-  tag(_Tag tag) {
-    bool dot = false;
+  dynamic tag(_Tag tag) {
+    var dot = false;
 
     tag.line = line();
 
@@ -423,11 +445,13 @@ class _Parser {
           var escaped = _tok.escaped;
           var names = obj.keys;
 
-          if (_tok.selfClosing) {tag.selfClosing = true;}
+          if (_tok.selfClosing) {
+            tag.selfClosing = true;
+          }
 
           for (var name in names) {
             var val = obj[name];
-            tag.set_Attribute(name, val, escaped:escaped[name]);
+            tag.set_Attribute(name, val, escaped: escaped[name]);
           }
           continue;
         default:
@@ -456,7 +480,9 @@ class _Parser {
     }
 
     // newline*
-    while ('newline' == peek().type) advance();
+    while ('newline' == peek().type) {
+      advance();
+    }
 
     tag.textOnly = tag.textOnly || _textOnly.contains(tag.name);
 
@@ -475,8 +501,8 @@ class _Parser {
       if (tag.textOnly) {
         if (!dot) {
           logWarn('$filename, line ${peek().line}:');
-          logWarn(
-              'Implicit textOnly for `script` and `style` is deprecated.  Use `script.` or `style.` instead.');
+          logWarn('''
+              Implicit textOnly for `script` and `style` is deprecated.  Use `script.` or `style.` instead.''');
         }
         lexer.pipeless = true;
         tag.block = parse_Text_Block();
@@ -496,5 +522,5 @@ class _Parser {
     return tag;
   }
 
-  logWarn(String msg) => print(msg);
+  void logWarn(String msg) => print(msg);
 }

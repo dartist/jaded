@@ -19,3 +19,7 @@
 ### - updated accompanying packages, character_parser and node_shims, to work with dart >=2.3.0
 
 ----
+
+## v. 0.2.1 -
+
+### - entire package linted in accordance with rffective_dart and pedantic

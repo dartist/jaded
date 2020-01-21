@@ -1,4 +1,5 @@
 library runtime;
+
 ///ignore_for_file:public_member_api_docs,type_annotate_public_apis,omit_local_variable_types,lines_longer_than_80_chars,prefer_interpolation_to_compose_strings
 import 'dart:convert' as conv;
 import 'dart:io';
@@ -16,10 +17,10 @@ class Debug {
 
 bool nulls(val) => val != null && val != '';
 
-joinClasses(val) =>
+dynamic joinClasses(val) =>
     val is List ? val.map(joinClasses).where(nulls).join(' ') : val;
 
-merge(Map a, Map b, [escaped]) {
+Map merge(Map a, Map b, [escaped]) {
   var ac = a['class'];
   var bc = b['class'];
 
@@ -63,16 +64,17 @@ String attrs(Map obj, [Map escaped]) {
 
       if (val is bool || null == val) {
         if (val != null && val) {
-          if (terse != null && terse){
-            buf.add(key);}
-          else{
-            buf.add('$key="$key"');}
+          if (terse != null && terse) {
+            buf.add(key);
+          } else {
+            buf.add('$key="$key"');
+          }
         }
       } else if (0 == key.indexOf('data') && val is! String) {
         buf.add("$key='${conv.json.encode(val)}'");
       } else if ('class' == key) {
         if ((val = escape(joinClasses(val))) != null) {
-          if (val != "") buf.add('$key="$val"');
+          if (val != '') buf.add('$key="$val"');
         }
       } else if (escaped != null &&
           escaped[key] != null &&
@@ -87,23 +89,25 @@ String attrs(Map obj, [Map escaped]) {
   return buf.join(' ');
 }
 
-escape(html) => "$html"
-    .replaceAll("&", '&amp;')
-    .replaceAll("<", '&lt;')
-    .replaceAll(">", '&gt;')
+String escape(html) => '$html'
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;');
 
 class RuntimeError extends Error {
   String path;
   String message;
   Error err;
-
-  toString() => "$message $path";
+  @override
+  String toString() => '$message $path';
 }
 
-rethrows(err, filename, lineno) {
-  print("filename: $filename, lineno: $lineno, err: $err");
-  if (filename == null || filename == "undefined") throw err;
+void rethrows(err, filename, lineno) {
+  print('filename: $filename, lineno: $lineno, err: $err');
+  if (filename == null || filename == 'undefined') {
+    throw err;
+  }
 //  if (typeof window != 'undefined') throw err;
 
   dynamic context = 3;
@@ -116,17 +120,16 @@ rethrows(err, filename, lineno) {
   int i = 0;
   context = lines.sublist(start, end).map((line) {
     var curr = i++ + start + 1;
-    return (curr == lineno ? '  > ' : '    ') + "$curr" + '| ' + line;
+    return (curr == lineno ? '  > ' : '    ') + '$curr' + '| ' + line;
   }).join('\n');
 
   var msg = err is NoSuchMethodError
       ? err.toString()
-      : "line: ${err.line}, column ${err.column}: $err";
+      : 'line: ${err.line}, column ${err.column}: $err';
 
   // Alter exception message
   throw RuntimeError()
     ..err = err
     ..path = filename
-    ..message =
-        (filename != null ? filename : 'Jade') + ':$lineno\n$context\n\n$msg';
+    ..message = '${(filename ?? 'Jade')}:$lineno\n$context\n\n$msg';
 }

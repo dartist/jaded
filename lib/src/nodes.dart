@@ -16,12 +16,14 @@ abstract class _Node {
   //ignore: avoid_returning_this
   _Node clone() => this;
 
-  String get label => '''$runtimeType: ${block != null ? block.nodes.length : 0} blocks''';
+  String get label =>
+      '''$runtimeType: ${block != null ? block.nodes.length : 0} blocks''';
+  @override
   String toString() => toDebugString(0);
 
   String toDebugString(int indent) {
-    var spaces = List.filled(indent, '').join("  ");
-    var str = "$spaces$label";
+    var spaces = List.filled(indent, '').join('  ');
+    var str = '$spaces$label';
     if (block != null) {
       str += block.toDebugString(indent + 1);
     }
@@ -32,6 +34,7 @@ abstract class _Node {
 
 class _Block extends _Node {
   List<_Node> nodes = [];
+  @override
   bool is_Block = true;
   String mode;
   List<_Node> prepended = [];
@@ -39,7 +42,9 @@ class _Block extends _Node {
   _Parser parser;
 
   _Block([node]) {
-    if (node != null) nodes.add(node);
+    if (node != null) {
+      nodes.add(node);
+    }
   }
 
   void replace(_Block other) {
@@ -61,20 +66,24 @@ class _Block extends _Node {
     var ret = this;
 
     for (var node in nodes) {
-      if (node.yield){
-        return node;}
-      else if (node.textOnly){
-        continue;}
-      else if (node is _Block){
-        ret = node.include_Block();}
-      else if (node.block != null && !node.block.isEmpty){
-        ret = node.block.include_Block();}
-      if (ret.yield) {return ret;}
+      if (node.yield) {
+        return node;
+      } else if (node.textOnly) {
+        continue;
+      } else if (node is _Block) {
+        ret = node.include_Block();
+      } else if (node.block != null && !node.block.isEmpty) {
+        ret = node.block.include_Block();
+      }
+      if (ret.yield) {
+        return ret;
+      }
     }
 
     return ret;
   }
 
+  @override
   _Block clone() {
     var clone = _Block();
     for (var node in nodes) {
@@ -83,15 +92,17 @@ class _Block extends _Node {
     return clone;
   }
 
-  String get label => "$runtimeType: ${nodes.length} nodes:";
+  @override
+  String get label => '$runtimeType: ${nodes.length} nodes:';
+  @override
   String toString() => toDebugString(0);
-
+  @override
   String toDebugString(int indent) {
-    var spaces = List.filled(indent, '').join("  ");
-    var str = "$spaces$label";
+    var spaces = List.filled(indent, '').join('  ');
+    var str = '$spaces$label';
     for (var i = 0; i < nodes.length; i++) {
       var node = nodes[i];
-      str += "\n$spaces  [$i] ${node.toDebugString(indent + 1)}";
+      str += '\n$spaces  [$i] ${node.toDebugString(indent + 1)}';
     }
     return str;
   }
@@ -103,8 +114,8 @@ class _Attr {
   bool escaped;
   //ignore: avoid_positional_boolean_parameters
   _Attr([this.name, this.val, this.escaped]);
-
-  String toString() => "$name = $val / $escaped";
+  @override
+  String toString() => '$name = $val / $escaped';
 }
 
 class _Attrs extends _Node {
@@ -116,7 +127,9 @@ class _Attrs extends _Node {
 
   void remove_Attribute(String name) {
     for (var i = 0, len = attrs.length; i < len; ++i) {
-      if (attrs[i] != null && attrs[i].name == name) {attrs.removeAt(i);}
+      if (attrs[i] != null && attrs[i].name == name) {
+        attrs.removeAt(i);
+      }
     }
   }
 
@@ -128,8 +141,11 @@ class _Attrs extends _Node {
 }
 
 class _Block_Comment extends _Node {
+  @override
   _Block block;
+  @override
   String val;
+  @override
   bool buffer;
 
   _Block_Comment([this.val, this.block, this.buffer]);
@@ -137,6 +153,7 @@ class _Block_Comment extends _Node {
 
 class _Case extends _Node {
   String expr;
+  @override
   _Block block;
 
   _Case([this.expr, this.block]);
@@ -144,27 +161,35 @@ class _Case extends _Node {
 
 class _When extends _Node {
   String expr;
+  @override
   _Block block;
+  @override
   bool debug = false;
 
   _When([this.expr, this.block]);
 }
 
 class _Code extends _Node {
+  @override
   String val;
+  @override
   bool buffer;
   bool escape;
+  @override
   bool debug;
 
   _Code([this.val, this.buffer, this.escape]) {
-    if (RegExp(r"^ *else").hasMatch(val)) debug = false;
-    if (buffer == null) buffer = false;
+    if (RegExp(r'^ *else').hasMatch(val)) {
+      debug = false;
+    }
+    buffer ??= false;
   }
-
+  @override
   String toString() => val;
 }
 
 class _Comment extends _Node {
+  @override
   String val;
 
   _Comment([this.val, buffer]) {
@@ -173,22 +198,26 @@ class _Comment extends _Node {
 }
 
 class _Doctype extends _Node {
+  @override
   String val;
   _Doctype(this.val);
 }
 
-class Each extends _Node {
+class _Each extends _Node {
   Object obj;
+  @override
   String val;
   String key;
+  @override
   _Block block;
   _Node alternative;
 
-  Each(this.obj, this.val, this.key, [this.block]);
+  _Each(this.obj, this.val, this.key, [this.block]);
 }
 
 class _Filter extends _Node {
   String name;
+  @override
   _Block block;
   Map attrs;
 
@@ -201,10 +230,13 @@ class _Literal extends _Node {
 }
 
 class _Mixin extends _Tag {
+  @override
   String name;
   String args;
+  @override
   _Block block;
   bool call = false;
+  @override
   List attrs = [];
 
   _Mixin([this.name, this.args, this.block, this.call]);
@@ -212,15 +244,17 @@ class _Mixin extends _Tag {
 
 class _Tag extends _Attrs {
   String name;
+  @override
   _Block block;
+  @override
   List attrs = [];
   bool selfClosing = false;
   _Code code;
 
   _Tag([this.name, this.block]) {
-    if (block == null) block = _Block();
+    block ??= _Block();
   }
-
+  @override
   _Tag clone() {
     return _Tag(name, block.clone())
       ..line = line
@@ -228,6 +262,7 @@ class _Tag extends _Attrs {
       ..textOnly = textOnly;
   }
 
+  @override
   bool get isInline => _inlineTags.contains(name);
 
   bool canInline() {
@@ -235,20 +270,28 @@ class _Tag extends _Attrs {
 
     bool isInline(_Node node) {
       // Recurse if the node is a block
-      if (node.is_Block) return (node as _Block).nodes.every(isInline);
+      if (node.is_Block) {
+        return (node as _Block).nodes.every(isInline);
+      }
       return node.is_Text || (node.isInline);
     }
 
     // Empty tag
-    if (nodes.length == 0) return true;
+    if (nodes.isEmpty) {
+      return true;
+    }
 
     // _Text-only or inline-only tag
-    if (1 == nodes.length) return isInline(nodes[0]);
+    if (1 == nodes.length) {
+      return isInline(nodes[0]);
+    }
 
     // Multi-line inline-only tag
     if (block.nodes.every(isInline)) {
       for (var i = 1, len = nodes.length; i < len; ++i) {
-        if (nodes[i - 1].is_Text && nodes[i].is_Text) return false;
+        if (nodes[i - 1].is_Text && nodes[i].is_Text) {
+          return false;
+        }
       }
       return true;
     }
@@ -257,16 +300,21 @@ class _Tag extends _Attrs {
     return false;
   }
 
+  @override
   String get label => "$runtimeType: <$name${selfClosing ? '/' : '></$name>'}";
 }
 
 class _Text extends _Node {
+  @override
   String val = '';
+  @override
   bool is_Text = true;
 
   _Text(line) {
-    if (line is String) {val = line;}
+    if (line is String) {
+      val = line;
+    }
   }
-
+  @override
   String toString() => val;
 }

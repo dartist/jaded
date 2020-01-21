@@ -10,57 +10,72 @@ var _transformers = <String, _Transformer>{}
   ..['scss'] = _SassTransformer();
 
 class _CDataTransformer extends _Transformer {
+  @override
   String name = 'cdata';
+  @override
   List engines = ['.']; // `.` means "no dependency"
+  @override
   String outputFormat = 'xml';
-
+  @override
   dynamic sync(String str, Map options) {
     var ret = cache(options);
-    return ret != null ? ret : cache(options, '<![CDATA[\n$str\n]]>');
+    return ret ?? cache(options, '<![CDATA[\n$str\n]]>');
   }
 }
 
 class _CssTransformer extends _Transformer {
+  @override
   String name = 'css';
+  @override
   List engines = ['.']; // `.` means "no dependency"
+  @override
   String outputFormat = 'css';
-
+  @override
   dynamic sync(String str, Map options) {
     var ret = cache(options);
-    return ret != null ? ret : cache(options, str);
+    return ret ?? cache(options, str);
   }
 }
 
 class _JsTransformer extends _Transformer {
+  @override
   String name = 'js';
+  @override
   List engines = ['.']; // `.` means "no dependency"
+  @override
   String outputFormat = 'js';
-
+  @override
   dynamic sync(String str, Map options) {
     var ret = cache(options);
-    return ret != null ? ret : cache(options, str);
+    return ret ?? cache(options, str);
   }
 }
 
 class _MarkdownTransformer extends _Transformer {
+  @override
   String name = 'markdown';
+  @override
   List engines = ['.']; // `.` means "no dependency"
+  @override
   String outputFormat = 'html';
-
+  @override
   dynamic sync(String str, Map options) {
     var ret = cache(options);
-    return ret != null ? ret : cache(options, markdownToHtml(str));
+    return ret ?? cache(options, markdownToHtml(str));
   }
 }
 
 class _SassTransformer extends _Transformer {
+  @override
   String name = 'sass';
+  @override
   List engines = ['.'];
+  @override
   String outputFormat = 'css';
-
+  @override
   dynamic sync(String str, Map options) {
     var ret = cache(options);
-    return ret != null ? ret : cache(options, sass.compileString(str));
+    return ret ?? cache(options, sass.compileString(str));
   }
 }
 
@@ -74,7 +89,7 @@ abstract class _Transformer {
   Map _cache = {};
   dynamic cache(Map options, [String str]) {
     var key = runtimeType.toString() +
-        (options != null ? conv.json.encode(options) : "");
+        (options != null ? conv.json.encode(options) : '');
     if (str != null) _cache[key] = str;
     return _cache[key];
   }
@@ -96,13 +111,13 @@ abstract class _Transformer {
     // Strip UTF-8 BOM if it exists
     str = (0xFEFF == str.codeUnitAt(0) ? str.substring(1) : str);
     //remove `\r` added by windows
-    return str.replaceAll(RegExp(r"\r"), '');
+    return str.replaceAll(RegExp(r'\r'), '');
   }
 
   dynamic minify(String str, Map options) => str;
 
   dynamic renderSync(String str, Map options) {
-    if (options == null) options = {};
+    options ??= {};
     options = clone(options);
     loadModule();
 //    if (_renderSync) {
@@ -110,8 +125,8 @@ abstract class _Transformer {
 //    } else if (sudoSync) {
 //      options.sudoSync = true;
 //      var res, err;
-//      _renderAdynamic sync((isBinary 
-//          ? str 
+//      _renderAdynamic sync((isBinary
+//          ? str
 //          : fixString(str)), options, function (e, val) {
 //        if (e) err = e;
 //        else res = val;

@@ -1,0 +1,31 @@
+:scss
+	$font-stack: Helvetica, sans-serif;
+	$primary-color: #333;
+
+	body {
+		font: 100% $font-stack;
+		color: $primary-color;
+	}
+
+	@mixin border-radius($radius) {
+		-webkit-border-radius: $radius;
+		-moz-border-radius: $radius;
+		-ms-border-radius: $radius;
+		border-radius: $radius;
+	}
+
+	nav {
+		ul {
+			margin: 0;
+			padding: 0;
+			list-style: none;
+		}
+
+		li { @include border-radius(10px); }
+
+		a {
+			display: block;
+			padding: 6px 12px;
+			text-decoration: none;
+		}
+	}

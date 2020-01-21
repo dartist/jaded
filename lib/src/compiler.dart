@@ -1,5 +1,7 @@
 part of jaded;
-//ignore_for_file: prefer_single_quotes
+
+//required for Mirror invocations while maintaining library privacy
+//ignore_for_file: non_constant_identifier_names
 class _AttrsTuple {
   String buf;
   String escaped;
@@ -9,8 +11,8 @@ class _AttrsTuple {
 
 class _Compiler {
   _Node node;
-  bool hasCompiled_Doctype = false;
-  bool hasCompiled_Tag = false;
+  bool hasCompiledDoctype = false;
+  bool hasCompiledTag = false;
   bool pp = false;
   String filename;
   bool escape = false;
@@ -28,7 +30,7 @@ class _Compiler {
   bool autoSemicolons;
   Function addVarReference;
 
-  bool within_Case = false;
+  bool withinCase = false;
 
   _Compiler(this.node,
       {bool pretty = false,
@@ -36,25 +38,29 @@ class _Compiler {
       this.doctype,
       this.filename,
       this.autoSemicolons = true}) {
-    hasCompiled_Doctype = false;
-    hasCompiled_Tag = false;
+    hasCompiledDoctype = false;
+    hasCompiledTag = false;
     pp = pretty;
     debug = compileDebug;
     indents = 0;
     parentIndents = 0;
-    if (doctype != null) set_Doctype(doctype);
-    addVarReference = (str) => throw UnimplementedError("addVarReference");
+    if (doctype != null) {
+      setDoctype(doctype);
+    }
+    addVarReference = (str) => throw UnimplementedError('addVarReference');
   }
 
   String compile() {
     buf = [];
-    if (pp) buf.add("jade.indent = [];");
+    if (pp) {
+      buf.add('jade.indent = [];');
+    }
     lastBufferedIdx = -1;
     visit(node);
     return buf.join('\n');
   }
 
-  void set_Doctype([String name = "default"]) {
+  void setDoctype([String name = 'default']) {
     doctype = or(_doctypes[name.toLowerCase()], '<!DOCTYPE $name>');
     terse = doctype.toLowerCase() == '<!doctype html>';
     xml = 0 == doctype.indexOf('<?xml');
@@ -63,14 +69,14 @@ class _Compiler {
   void buffer(String str, {bool interpolate = false}) {
     if (interpolate) {
       Match match = str != null
-          ? RegExp(r"(\\)?([#!]){((?:.|\n)*)$").firstMatch(str)
+          ? RegExp(r'(\\)?([#!]){((?:.|\n)*)$').firstMatch(str)
           : null;
       if (match != null) {
-        buffer(str.substring(0, match.start), interpolate:false);
+        buffer(str.substring(0, match.start), interpolate: false);
         if (match.group(1) != null) {
           // escape
-          buffer(match.group(2) + '{', interpolate:false);
-          buffer(match.group(3), interpolate:true);
+          buffer('${match.group(2)}{', interpolate: false);
+          buffer(match.group(3), interpolate: true);
           return;
         } else {
           String rest;
@@ -79,7 +85,7 @@ class _Compiler {
           try {
             rest = match.group(3);
             range = _parseJSExpression(rest);
-            code = ('!' == match.group(2) ? '' : 'jade.escape') +
+            code = '${('!' == match.group(2) ? '' : 'jade.escape')}'
                 "((jade.interp = ${range.src}) == null ? '' : jade.interp)";
             if (_isVarExpr(range.src)) {
               addVarReference(range.src);
@@ -88,7 +94,7 @@ class _Compiler {
             rethrow;
           }
           bufferExpression(code);
-          buffer(rest.substring(range.end + 1), interpolate:true);
+          buffer(rest.substring(range.end + 1), interpolate: true);
           return;
         }
       }
@@ -98,7 +104,9 @@ class _Compiler {
     str = str.substring(1, str.length - 1);
 
     if (lastBufferedIdx == buf.length) {
-      if (lastBufferedType == 'code') lastBuffered += ' + "';
+      if (lastBufferedType == 'code') {
+        lastBuffered += ' + "';
+      }
       lastBufferedType = 'text';
       lastBuffered += str;
       buf[lastBufferedIdx - 1] = 'buf.add(${bufferStartChar + lastBuffered}");';
@@ -113,9 +121,11 @@ class _Compiler {
 
   void bufferExpression(String src) {
     if (lastBufferedIdx == buf.length) {
-      if (lastBufferedType == 'text') lastBuffered += '"';
+      if (lastBufferedType == 'text') {
+        lastBuffered += '"';
+      }
       lastBufferedType = 'code';
-      lastBuffered += ' + (' + src + ')';
+      lastBuffered += ' + ($src)';
       buf[lastBufferedIdx - 1] = 'buf.add(${bufferStartChar + lastBuffered});';
     } else {
       buf.add('buf.add($src);');
@@ -130,7 +140,7 @@ class _Compiler {
     buffer(
         (newline ? '\n' : '') + List.filled(indents + offset, '').join('  '));
     if (parentIndents > 0) {
-      buf.add("jade.indent.forEach((x) => buf.add(x));");
+      buf.add('jade.indent.forEach((x) => buf.add(x));');
     }
   }
 
@@ -140,7 +150,7 @@ class _Compiler {
           ? conv.json.encode(node.filename)
           : 'jade.debug[0].filename';
       buf.add(
-          'jade.debug.insert(0, new Debug(lineno: ${node.line}, filename: $filename));');
+          '''jade.debug.insert(0, new Debug(lineno: ${node.line}, filename: $filename));''');
     }
 
     // Massive hack to fix our context
@@ -152,28 +162,30 @@ class _Compiler {
 
     _visit_Node(node);
 
-    if (debug) buf.add('jade.debug.removeAt(0);');
+    if (debug) {
+      buf.add('jade.debug.removeAt(0);');
+    }
   }
 
-  _visit_Node(_Node node) {
+  InstanceMirror _visit_Node(_Node node) {
     var name = MirrorSystem.getName(reflect(node).type.simpleName);
-    var method = Symbol('visit' + name);
+    var method = Symbol('visit$name');
     var im = reflect(this);
     try {
       return im.invoke(method, [node]);
-    } on Exception catch(e){
-      print("Err: in visit$name: $e");
+    } on Exception catch (e) {
+      print('Err: in visit$name: $e');
       return im.invoke(method, [node]);
     }
   }
 
   void visit_Case(_Case node) {
-    var _ = within_Case;
-    within_Case = true;
+    var _ = withinCase;
+    withinCase = true;
     buf.add('switch (${node.expr}){');
     visit(node.block);
     buf.add('}');
-    within_Case = _;
+    withinCase = _;
   }
 
   void visit_When(_When node) {
@@ -189,11 +201,14 @@ class _Compiler {
 
     // _Block keyword has a special meaning in mixins
     if (parentIndents > 0 && block.mode != null) {
-      if (pp){
+      if (pp) {
         buf.add(
-            "jade.indent.add('${List.filled(indents + 1, '').join('  ')}');");}
-      buf.add('if (block != null) block();');
-      if (pp) {buf.add("jade.indent.removeLast();");}
+            "jade.indent.add('${List.filled(indents + 1, '').join('  ')}');");
+      }
+      buf.add('if (block != null) {block();}');
+      if (pp) {
+        buf.add('jade.indent.removeLast();');
+      }
       return;
     }
 
@@ -202,7 +217,9 @@ class _Compiler {
         len > 1 &&
         !escape &&
         block.nodes[0].is_Text &&
-        block.nodes[1].is_Text) prettyIndent(offset:1, newline:true);
+        block.nodes[1].is_Text) {
+      prettyIndent(offset: 1, newline: true);
+    }
 
     for (var i = 0; i < len; ++i) {
       // Pretty print text
@@ -210,37 +227,44 @@ class _Compiler {
           i > 0 &&
           !escape &&
           block.nodes[i].is_Text &&
-          block.nodes[i - 1].is_Text) {prettyIndent(offset:1, newline:false);}
+          block.nodes[i - 1].is_Text) {
+        prettyIndent(offset: 1, newline: false);
+      }
 
       visit(block.nodes[i]);
       // Multiple text nodes are separated by newlines
       if (block.nodes.length > i + 1 &&
           block.nodes[i].is_Text &&
-          block.nodes[i + 1].is_Text) buffer('\n');
+          block.nodes[i + 1].is_Text) {
+        buffer('\n');
+      }
     }
   }
 
   void visit_Doctype([_Doctype doctype]) {
     if (doctype != null && (doctype.val != null || this.doctype == null)) {
-      set_Doctype(
+      setDoctype(
           doctype.val != null && doctype.val != null ? doctype.val : 'default');
     }
 
-    if (this.doctype != null) buffer(this.doctype);
-    hasCompiled_Doctype = true;
+    if (this.doctype != null) {
+      buffer(this.doctype);
+    }
+    hasCompiledDoctype = true;
   }
 
   void visit_Mixin(_Mixin mixin) {
-    var name = mixin.name.replaceAll("-", '_') + '_mixin';
+    var name = '${mixin.name.replaceAll("-", '_')}_mixin';
     String args = or(mixin.args, '');
     var block = mixin.block;
     var attrs = mixin.attrs;
 
     if (mixin.call) {
-      if (pp){
+      if (pp) {
         buf.add(
-            "jade.indent.add('${List.filled(indents + 1, '').join('  ')}');");}
-      if (block != null || attrs.length > 0) {
+            "jade.indent.add('${List.filled(indents + 1, '').join('  ')}');");
+      }
+      if (block != null || attrs.isNotEmpty) {
         buf.add('$name({');
 
         if (block != null) {
@@ -254,24 +278,20 @@ class _Compiler {
           indents = _indents;
           parentIndents--;
 
-          if (attrs.length > 0) {
+          if (attrs.isNotEmpty) {
             buf.add('},');
           } else {
             buf.add('}');
           }
         }
 
-        if (attrs.length > 0) {
+        if (attrs.isNotEmpty) {
           var val = this.attrs(attrs);
           if (val.inherits) {
-            buf.add('"attributes": jade.merge({' +
-                val.buf +
-                '}, attributes), "escaped": jade.merge(' +
-                val.escaped +
-                ', escaped, true)');
+            buf.add('''
+            "attributes": jade.merge({${val.buf}}, attributes), "escaped": jade.merge(${val.escaped}, escaped, true)''');
           } else {
-            buf.add(
-                '"attributes": {' + val.buf + '}, "escaped": ' + val.escaped);
+            buf.add('"attributes": {${val.buf}}, "escaped": ${val.escaped}');
           }
         }
 
@@ -283,14 +303,16 @@ class _Compiler {
       } else {
         buf.add('$name(${args.isEmpty ? "{}" : "{},$args"});');
       }
-      if (pp) buf.add("jade.indent.removeLast();");
+      if (pp) {
+        buf.add('jade.indent.removeLast();');
+      }
     } else {
       buf
         ..add('$name = (${args.isEmpty ? "self" : "self,[$args]"}){')
-        ..add(
-            'var block = self["block"], attributes = self["attributes"], escaped = self["escaped"];')
-        ..add('if (attributes == null) attributes = {};')
-        ..add('if (escaped == null) escaped = {};');
+        ..add('''
+        var block = self["block"], attributes = self["attributes"], escaped = self["escaped"];''')
+        ..add('if (attributes == null) {attributes = {};}')
+        ..add('if (escaped == null) {escaped = {};}');
 
       parentIndents++;
       visit(block);
@@ -303,22 +325,25 @@ class _Compiler {
     indents++;
     var name = tag.name;
 
-    bufferName() {
-      if (tag.buffer){
-        bufferExpression(name);}
-      else{
-        buffer(name);}
+    void bufferName() {
+      if (tag.buffer) {
+        bufferExpression(name);
+      } else {
+        buffer(name);
+      }
     }
 
-    if (!hasCompiled_Tag) {
-      if (!hasCompiled_Doctype && 'html' == name) {
+    if (!hasCompiledTag) {
+      if (!hasCompiledDoctype && 'html' == name) {
         visit_Doctype();
       }
-      hasCompiled_Tag = true;
+      hasCompiledTag = true;
     }
 
     // pretty print
-    if (pp && !tag.isInline) prettyIndent(offset:0, newline:true);
+    if (pp && !tag.isInline) {
+      prettyIndent(offset: 0, newline: true);
+    }
 
     if ((_selfClosing.contains(name) || tag.selfClosing) && !xml) {
       buffer('<');
@@ -327,23 +352,27 @@ class _Compiler {
       terse ? buffer('>') : buffer('/>');
     } else {
       // Optimize attributes buffering
-      if (tag.attrs.length > 0) {
+      if (tag.attrs.isNotEmpty) {
         buffer('<');
         bufferName();
-        if (tag.attrs.length > 0) visitAttributes(tag.attrs);
+        if (tag.attrs.isNotEmpty) {
+          visitAttributes(tag.attrs);
+        }
         buffer('>');
       } else {
         buffer('<');
         bufferName();
         buffer('>');
       }
-      if (tag.code != null) visit_Code(tag.code);
+      if (tag.code != null) {
+        visit_Code(tag.code);
+      }
       escape = 'pre' == tag.name;
       visit(tag.block);
 
       // pretty print
       if (pp && !tag.isInline && 'pre' != tag.name && !tag.canInline()) {
-        prettyIndent(offset:0, newline:true);
+        prettyIndent(offset: 0, newline: true);
       }
 
       buffer('</');
@@ -355,21 +384,28 @@ class _Compiler {
 
   void visit_Filter(_Filter node_Filter) {
     var text = node_Filter.block.nodes.map((node) => node.val).join('\n');
-    if (node_Filter.attrs == null) node_Filter.attrs = {};
+    node_Filter.attrs ??= {};
     node_Filter.attrs['filename'] = filename;
-    buffer(_filter(node_Filter.name, text, node_Filter.attrs), interpolate:true);
+    buffer(_filter(node_Filter.name, text, node_Filter.attrs),
+        interpolate: true);
   }
 
-  void visit_Text(_Text text) => buffer(text.val, interpolate:true);
+  void visit_Text(_Text text) => buffer(text.val, interpolate: true);
 
   void visit_Comment(_Comment comment) {
-    if (!comment.buffer) {return;}
-    if (pp) {prettyIndent(offset:1, newline:true);}
+    if (!comment.buffer) {
+      return;
+    }
+    if (pp) {
+      prettyIndent(offset: 1, newline: true);
+    }
     buffer('<!--${comment.val}-->');
   }
 
   void visit_Block_Comment(_Block_Comment comment) {
-    if (!comment.buffer) {return;}
+    if (!comment.buffer) {
+      return;
+    }
     if (0 == comment.val.trim().indexOf('if')) {
       buffer('<!--[${comment.val.trim()}]>');
       visit(comment.block);
@@ -390,44 +426,53 @@ class _Compiler {
     if (code.buffer) {
       var val = trimLeft(code.val);
       val = 'null == (jade.interp = $val) ? "" : jade.interp';
-      if (code.escape) val = 'jade.escape($val)';
+      if (code.escape) {
+        val = 'jade.escape($val)';
+      }
       bufferExpression(val);
     } else {
       var stmt = code.val;
       var cmp = code.val.trim();
-      if (autoSemicolons && !cmp.endsWith(";") && !cmp.endsWith("{")) {
-        var firstToken = code.val.trim().split(" ")[0];
-        if (firstToken == "var" || !isKeyword(firstToken)) stmt += ";";
+      if (autoSemicolons && !cmp.endsWith(';') && !cmp.endsWith('{')) {
+        var firstToken = code.val.trim().split(' ')[0];
+        if (firstToken == 'var' || !isKeyword(firstToken)) {
+          stmt += ';';
+        }
       }
       buf.add(stmt);
     }
 
     // _Block support
     if (code.block != null) {
-      if (!code.buffer) {buf.add('{');}
+      if (!code.buffer) {
+        buf.add('{');
+      }
       visit(code.block);
-      if (!code.buffer) {buf.add('}');}
+      if (!code.buffer) {
+        buf.add('}');
+      }
     }
   }
 
-  void visitEach(Each each) {
-    var obj = r"$$obj";
-    var l = r"$$l";
-    buf.add('' +
-        '// iterate ' +
-        each.obj +
-        '\n' +
-        'try{\n' +
-        ';((){\n' +
-        '  var $obj = ${each.obj};\n' +
+  void visit_Each(_Each each) {
+    var obj = r'$$obj';
+    var l = r'$$l';
+    buf.add(''
+        '// iterate '
+        '${each.obj}'
+        '\n'
+        'try{\n'
+        ';((){\n'
+        '  var $obj = ${each.obj};\n'
         '  if ($obj is Iterable) {\n');
 
     if (each.alternative != null) {
       buf.add('  if ($obj != null && !$obj.isEmpty) {');
     }
 
-    buf.add('' +
-        '    for (var ${each.key} = 0, $l = $obj.length; ${each.key} < $l; ${each.key}++) {\n' +
+    buf.add(''
+        '    for (var ${each.key} = 0, $l = $obj.length;'
+        '${each.key} < $l; ${each.key}++) {\n'
         '      var ${each.val} = $obj.elementAt(${each.key});\n');
 
     visit(each.block);
@@ -440,11 +485,11 @@ class _Compiler {
       buf.add('  }');
     }
 
-    buf.add('' +
-        '   } else {\n' +
-        '     var $l = 0;\n' + 
-        '     for (var ${each.key} in ${obj}.keys) {\n' +//ignore: unnecessary_brace_in_string_interps
-        '       $l++;' +
+    buf.add(''
+        '   } else {\n'
+        '     var $l = 0;\n'
+        '     for (var ${each.key} in ${obj}.keys) {\n' //ignore: unnecessary_brace_in_string_interps
+        '       $l++;'
         '       var ${each.val} = $obj[${each.key}];\n');
 
     visit(each.block);
@@ -460,38 +505,44 @@ class _Compiler {
   }
 
   void visitAttributes(List attrs) {
-    if (attrs.isEmpty) return; //DB: avoid eval with NO OPs
+    if (attrs.isEmpty) {
+      return;
+    } //DB: avoid eval with NO OPs
 
     var val = this.attrs(attrs);
     if (val.inherits) {
-      bufferExpression(
-          "jade.attrs(jade.merge({ ${val.buf} }, attributes), jade.merge(${val.escaped}, escaped, true))");
+      bufferExpression('''
+          jade.attrs(jade.merge({ ${val.buf} }, attributes), jade.merge(${val.escaped}, escaped, true))''');
     } else if (val.constant) {
       buffer(jade.attrs(
-          fakeEval("{ ${val.buf} }"), conv.json.decode(val.escaped)));
+          fakeEval('{ ${val.buf} }'), conv.json.decode(val.escaped)));
 
 //      throw new ParseError("eval not supported");
 //      eval('var evalBuf={' + val.buf + '};');
 //      buffer(jade.attrs(evalBuf, json.parse(val.escaped)));
     } else {
-      bufferExpression("jade.attrs({ ${val.buf} }, ${val.escaped})");
+      bufferExpression('jade.attrs({ ${val.buf} }, ${val.escaped})');
     }
   }
 
   dynamic fakeEval(String str) {
     var fakeJsonStr =
-        str.replaceAll('"{', '{').replaceAll('}"', '}').replaceAll(r"\#", "#");
+        str.replaceAll('"{', '{').replaceAll('}"', '}').replaceAll(r'\#', '#');
 
     var sb = StringBuffer();
     var inQuotes = false;
     var lastQuote;
-    var lastChar;//ignore: unused_local_variable
+    var lastChar; //ignore: unused_local_variable
     for (var c in fakeJsonStr.split('')) {
       if (!inQuotes) {
-        if (c == '(' || c == ')') continue; //remove '()' outside quotes
+        if (c == '(' || c == ')') {
+          continue;
+        } //remove '()' outside quotes
       } else {
         if ((lastQuote == '"' && c == "'") || (lastQuote == "'" && c == '"')) {
-          if (c == "\"") sb.write('\\'); //escape quotes inside quotes
+          if (c == '\"') {
+            sb.write('\\');
+          } //escape quotes inside quotes
           sb.write(c);
           continue;
         }
@@ -509,7 +560,7 @@ class _Compiler {
     try {
       return conv.json.decode(fakeJsonStr);
     } on Exception catch (e) {
-      print("Err parsing fakeEval: $fakeJsonStr / $str: $e");
+      print('Err parsing fakeEval: $fakeJsonStr / $str: $e');
       return {};
     }
   }
@@ -522,7 +573,9 @@ class _Compiler {
         attrs.every((attr) => isConstant(attr.val is String ? attr.val : null));
     var inherits = false;
 
-    if (terse) {buf.add('"terse": true');}
+    if (terse) {
+      buf.add('"terse": true');
+    }
 
     dynamic _feFunc(attr) {
       if (attr.name == 'attributes') {
@@ -536,9 +589,10 @@ class _Compiler {
         buf.add(pair);
       }
     }
+
     attrs.forEach(_feFunc);
 
-    if (classes.length > 0) {
+    if (classes.isNotEmpty) {
       buf.add('"class": [${classes.join(",")}]');
     }
 
@@ -552,10 +606,12 @@ class _Compiler {
   bool isConstant(String val) {
     // Check strings/literals
     if (RegExp(
-            r'^ *("([^"\\]*(\\.[^"\\]*)*)"' +
-                r"|'([^'\\]*(\\.[^'\\]*)*)'|true|false|null) *$",
+            r'^ *("([^"\\]*(\\.[^"\\]*)*)"'
+            r"|'([^'\\]*(\\.[^'\\]*)*)'|true|false|null) *$",
             caseSensitive: false)
-        .hasMatch("$val")) return true;
+        .hasMatch('$val')) {
+      return true;
+    }
 
     // Check numbers
     if (double.tryParse(val) != null && double.tryParse(val).isNaN) {
@@ -565,8 +621,9 @@ class _Compiler {
     }
     // Check arrays
     List<String> matches;
-    if ((matches = exec(RegExp(r"^ *\[(.*)\] *$"), val)) != null){
-      return matches[1].split(',').every(isConstant);}
+    if ((matches = exec(RegExp(r'^ *\[(.*)\] *$'), val)) != null) {
+      return matches[1].split(',').every(isConstant);
+    }
 
     return false;
   }

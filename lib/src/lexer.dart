@@ -36,29 +36,36 @@ class _Lexer {
   List<String> varReferences = [];
 
   void addVarDeclaration(String varName) {
-    if (!varDeclarations.contains(varName)) varDeclarations.add(varName);
+    if (!varDeclarations.contains(varName)) {
+      varDeclarations.add(varName);
+    }
   }
 
   void addVarReference(String varExpr) {
     //Register the root var reference
     var pos = varExpr.indexOf('.');
-    if (pos == -1) pos = varExpr.indexOf('[');
-    if (pos == -1) pos = varExpr.length;
+    if (pos == -1) {
+      pos = varExpr.indexOf('[');
+    }
+    if (pos == -1) {
+      pos = varExpr.length;
+    }
 
     var varName = varExpr.substring(0, pos);
-    if (!varReferences.contains(varName)) varReferences.add(varName);
+    if (!varReferences.contains(varName)) {
+      varReferences.add(varName);
+    }
   }
 
   _Lexer(this.str, {this.colons = false}) {
-    input = str.replaceAll(RegExp(r"\r\n|\r"), '\n');
+    input = str.replaceAll(RegExp(r'\r\n|\r'), '\n');
   }
 
   _Token tok(String type, [dynamic val]) => _Token(type, lineno, val);
 
   String consume(int len) => input = input.substring(len);
-  
+
   _Token scan(RegExp regexp, String type) {
-    
     List<String> captures;
     if ((captures = exec(regexp, input)) != null) {
       consume(captures[0].length);
@@ -90,55 +97,57 @@ class _Lexer {
     return range;
   }
 
-  _Token stashed() => stash.length > 0 ? stash.removeAt(0) : null;
+  _Token stashed() => stash.isNotEmpty ? stash.removeAt(0) : null;
 
   _Token deferred() =>
-      deferredTokens.length > 0 ? deferredTokens.removeAt(0) : null;
+      deferredTokens.isNotEmpty ? deferredTokens.removeAt(0) : null;
 
   _Token eos() {
-    if (input.length > 0) return null;
-    if (indentStack.length > 0) {
+    if (input.isNotEmpty) {
+      return null;
+    }
+    if (indentStack.isNotEmpty) {
       indentStack.removeAt(0);
       return tok('outdent');
     } else {
       return tok('eos');
     }
   }
-  
+
   _Token blank() {
     List<String> captures;
-    if ((captures = exec(RegExp(r"^\n *\n"), input)) != null) {
+    if ((captures = exec(RegExp(r'^\n *\n'), input)) != null) {
       consume(captures[0].length - 1);
       ++lineno;
       return pipeless ? tok('text', '') : next();
     }
   }
-  
+
   _Token comment() {
     List<String> captures;
-    if ((captures = exec(RegExp(r"^ *\/\/(-)?([^\n]*)"), input)) != null) {
+    if ((captures = exec(RegExp(r'^ *\/\/(-)?([^\n]*)'), input)) != null) {
       consume(captures[0].length);
       return tok('comment', captures[2])..buffer = '-' != captures[1];
     }
   }
-  
+
   _Token interpolation() {
-    if (RegExp(r"^#\{").hasMatch(input)) {
+    if (RegExp(r'^#\{').hasMatch(input)) {
       var match;
       try {
         match = bracketExpression(1);
       } on Exception {
-        return null; 
+        return null;
         //not an interpolation expression, just an unmatched open interpolation
       }
       consume(match.end + 1);
       return tok('interpolation', match.src);
     }
   }
-  
+
   _Token tag() {
     List<String> captures;
-    if ((captures = exec(RegExp(r"^(\w[-:\w]*)(\/?)"), input)) != null) {
+    if ((captures = exec(RegExp(r'^(\w[-:\w]*)(\/?)'), input)) != null) {
       consume(captures[0].length);
       _Token _tok;
       var name = captures[1];
@@ -146,7 +155,9 @@ class _Lexer {
         name = name.substring(0, name.length - 1);
         _tok = tok('tag', name);
         defer(tok(':'));
-        while (' ' == input[0]) {input = input.substring(1);}
+        while (' ' == input[0]) {
+          input = input.substring(1);
+        }
       } else {
         _tok = tok('tag', name);
       }
@@ -155,21 +166,21 @@ class _Lexer {
     }
   }
 
-  _Token filter() => scan(RegExp(r"^:(\w+)"), 'filter');
+  _Token filter() => scan(RegExp(r'^:(\w+)'), 'filter');
 
-  _Token doctype() => scan(RegExp(r"^(?:!!!|doctype) *([^\n]+)?"), 'doctype');
+  _Token doctype() => scan(RegExp(r'^(?:!!!|doctype) *([^\n]+)?'), 'doctype');
 
-  _Token id() => scan(RegExp(r"^#([\w-]+)"), 'id');
+  _Token id() => scan(RegExp(r'^#([\w-]+)'), 'id');
 
-  _Token className() => scan(RegExp(r"^\.([\w-]+)"), 'class');
+  _Token className() => scan(RegExp(r'^\.([\w-]+)'), 'class');
 
-  _Token text() => scan(RegExp(r"^(?:\| ?| ?)?([^\n]+)"), 'text');
-  
-  _Token Extends() => scan(RegExp(r"^extends? +([^\n]+)"), 'extends');
+  _Token text() => scan(RegExp(r'^(?:\| ?| ?)?([^\n]+)'), 'text');
+
+  _Token Extends() => scan(RegExp(r'^extends? +([^\n]+)'), 'extends');
 
   _Token prepend() {
     List<String> captures;
-    if ((captures = exec(RegExp(r"^prepend +([^\n]+)"), input)) != null) {
+    if ((captures = exec(RegExp(r'^prepend +([^\n]+)'), input)) != null) {
       consume(captures[0].length);
       var name = captures[1];
       return tok('block', name)..mode = 'prepend';
@@ -178,7 +189,7 @@ class _Lexer {
 
   _Token append() {
     List<String> captures;
-    if ((captures = exec(RegExp(r"^append +([^\n]+)"), input)) != null) {
+    if ((captures = exec(RegExp(r'^append +([^\n]+)'), input)) != null) {
       consume(captures[0].length);
       var name = captures[1];
       return tok('block', name)..mode = 'append';
@@ -188,41 +199,45 @@ class _Lexer {
   _Token block() {
     List<String> captures;
     if ((captures = exec(
-            RegExp(r"^block\b *(?:(prepend|append) +)?([^\n]*)"), input)) !=
+            RegExp(r'^block\b *(?:(prepend|append) +)?([^\n]*)'), input)) !=
         null) {
       consume(captures[0].length);
       var mode = captures[1];
-      if (mode == null || mode.isEmpty) mode = 'replace';
+      if (mode == null || mode.isEmpty) {
+        mode = 'replace';
+      }
       var name = captures[2];
 
       return tok('block', name)..mode = mode;
     }
   }
 
-  _Token yield() => scan(RegExp(r"^yield *"), 'yield');
+  _Token yield() => scan(RegExp(r'^yield *'), 'yield');
 
-  _Token include() => scan(RegExp(r"^include +([^\n]+)"), 'include');
+  _Token include() => scan(RegExp(r'^include +([^\n]+)'), 'include');
 
-  _Token Case() => scan(RegExp(r"^case +([^\n]+)"), 'case');
+  _Token Case() => scan(RegExp(r'^case +([^\n]+)'), 'case');
 
-  _Token when() => scan(RegExp(r"^when +([^:\n]+)"), 'when');
+  _Token when() => scan(RegExp(r'^when +([^:\n]+)'), 'when');
 
-  _Token Default() => scan(RegExp(r"^default *"), 'default');
+  _Token Default() => scan(RegExp(r'^default *'), 'default');
 
   _Token assignment() {
     List<String> captures;
     //DB original: ^(\w+) += *([^;\n]+)( *;? *)
-    if ((captures = exec(RegExp(r"^(\w+) += *([^\n]+)( *;? *)"), input)) !=
+    if ((captures = exec(RegExp(r'^(\w+) += *([^\n]+)( *;? *)'), input)) !=
         null) {
       consume(captures[0].length);
       var name = captures[1];
       var val = captures[2];
 
-      val = val.replaceFirst(RegExp(r"\s*;\s*$"), ''); //DB: remove trailing ';'
+      val = val.replaceFirst(RegExp(r'\s*;\s*$'), ''); //DB: remove trailing ';'
 
       addVarDeclaration(name);
 
-      if (_isVarExpr(val)) addVarReference(val);
+      if (_isVarExpr(val)) {
+        addVarReference(val);
+      }
 
       return tok('code', '$name = ($val);');
     }
@@ -230,15 +245,15 @@ class _Lexer {
 
   _Token call() {
     List<String> captures;
-    if ((captures = exec(RegExp(r"^\+([-\w]+)"), input)) != null) {
+    if ((captures = exec(RegExp(r'^\+([-\w]+)'), input)) != null) {
       consume(captures[0].length);
       var _tok = tok('call', captures[1]);
 
       // Check for args (not attributes)
-      if ((captures = exec(RegExp(r"^ *\("), input)) != null) {
+      if ((captures = exec(RegExp(r'^ *\('), input)) != null) {
         try {
           var range = bracketExpression(captures[0].length - 1);
-          if (!RegExp(r"^ *[-\w]+ *=").hasMatch(range.src)) {
+          if (!RegExp(r'^ *[-\w]+ *=').hasMatch(range.src)) {
             // not attributes
             consume(range.end + 1);
             _tok.args = range.src;
@@ -254,12 +269,12 @@ class _Lexer {
 
   _Token mixin() {
     List<String> captures;
-    if ((captures = exec(RegExp(r"^mixin +([-\w]+)(?: *\((.*)\))?"), input)) !=
+    if ((captures = exec(RegExp(r'^mixin +([-\w]+)(?: *\((.*)\))?'), input)) !=
         null) {
       consume(captures[0].length);
       return tok('mixin', captures[1])..args = captures[2];
     }
-    /*else if ((captures = exec(RegExp(r"^\+(\s*)(([-\w]+)|(#\{))"), input))!= null){
+    /*else if ((captures = exec(RegExp(r'^\+(\s*)(([-\w]+)|(#\{))'), input))!= null){
       consume(captures[0].length);
       return tok('mixin', captures[2])..args = captures[3];
     }*/
@@ -268,7 +283,7 @@ class _Lexer {
   _Token conditional() {
     List<String> captures;
     if ((captures =
-            exec(RegExp(r"^(if|unless|else if|else)\b([^\n]*)"), input)) !=
+            exec(RegExp(r'^(if|unless|else if|else)\b([^\n]*)'), input)) !=
         null) {
       consume(captures[0].length);
       var type = captures[1];
@@ -295,7 +310,7 @@ class _Lexer {
 
   _Token While() {
     List<String> captures;
-    if ((captures = exec(RegExp(r"^while +([^\n]+)"), input)) != null) {
+    if ((captures = exec(RegExp(r'^while +([^\n]+)'), input)) != null) {
       consume(captures[0].length);
       return tok('code', 'while (${captures[1]})');
     }
@@ -305,13 +320,15 @@ class _Lexer {
     List<String> captures;
     if ((captures = exec(
             RegExp(
-                r"^(?:- *)?(?:each|for) +([a-zA-Z_$][\w$]*)(?: *, *([a-zA-Z_$][\w$]*))? * in *([^\n]+)"),
+                r'^(?:- *)?(?:each|for) +([a-zA-Z_$][\w$]*)(?: *, *([a-zA-Z_$][\w$]*))? * in *([^\n]+)'),
             input)) !=
         null) {
       consume(captures[0].length);
 
       var code = captures[3];
-      if (_isVarExpr(code)) addVarReference(code);
+      if (_isVarExpr(code)) {
+        addVarReference(code);
+      }
 
       return tok('each', captures[1])
         ..key =
@@ -322,18 +339,22 @@ class _Lexer {
 
   _Token code() {
     List<String> captures;
-    if ((captures = exec(RegExp(r"^(!?=|-)[ \t]*([^\n]+)"), input)) != null) {
+    if ((captures = exec(RegExp(r'^(!?=|-)[ \t]*([^\n]+)'), input)) != null) {
       consume(captures[0].length);
       var flags = captures[1];
       var expr = captures[2];
       //DB: keep record of var references
-      var varRegEx = RegExp(r"^[A-Za-z_]+");
-      if (expr.startsWith("var ")) {
-        expr = expr.substring("var ".length);
+      var varRegEx = RegExp(r'^[A-Za-z_]+');
+      if (expr.startsWith('var ')) {
+        expr = expr.substring('var '.length);
         var ret = exec(varRegEx, expr);
-        if (ret != null) addVarDeclaration(ret[0]);
-      } else if (flags == "=") {
-        if (_isVarExpr(expr)) addVarReference(expr);
+        if (ret != null) {
+          addVarDeclaration(ret[0]);
+        }
+      } else if (flags == '=') {
+        if (_isVarExpr(expr)) {
+          addVarReference(expr);
+        }
       }
       return tok('code', expr)
         ..escape = flags.substring(0, 1) == '='
@@ -349,27 +370,31 @@ class _Lexer {
       var _tok = tok('attrs');
       var len = str.length;
       var states = ['key'];
-      //ignore:
+      //used below (wtf?)
+      //ignore: unused_local_variable
       var _colons = colons, escapedAttr, key = '', val = '', quote, c, p;
 
-      state() => states[states.length - 1];
+      String state() => states[states.length - 1];
 
-      interpolate(String attr) {
-        return attr.replaceAllMapped(RegExp(r"(\\)?#\{(.+)"), (Match match) {
+      String interpolate(String attr) {
+        return attr.replaceAllMapped(RegExp(r'(\\)?#\{(.+)'), (match) {
           //_, escape, expr
           var _ = match.group(0);
           var escape = match.group(1);
           var expr = match.group(2);
 
-          if (escape != null) return _;
+          if (escape != null) {
+            return _;
+          }
           try {
             var range = _parseJSExpression(expr);
-            if (expr[range.end] != '}'){
-              return _.substring(0, 2) + interpolate(_.substring(2));}
+            if (expr[range.end] != '}') {
+              return _.substring(0, 2) + interpolate(_.substring(2));
+            }
             return quote +
-                " + (\"\${" +
+                ' + (\"\${' +
                 range.src +
-                "}\") + " +
+                '}\") + ' +
                 quote +
                 interpolate(expr.substring(range.end + 1));
           } on Exception {
@@ -382,10 +407,12 @@ class _Lexer {
       _tok.attrs = {};
       _tok.escaped = {};
 
-      parse(c) {
+      dynamic parse(c) {
         var real = c;
         // TODO: remove when people fix ":"
-        if (colons && ':' == c) c = '=';
+        if (colons && ':' == c) {
+          c = '=';
+        }
         switch (c) {
           case ',':
           case '\n':
@@ -400,7 +427,9 @@ class _Lexer {
                 states.add('key');
                 val = val.trim();
                 key = key.trim();
-                if ('' == key) return;
+                if ('' == key) {
+                  return;
+                }
                 key = key
                     .replaceAll(RegExp("^['\"]|['\"]\$"), '')
                     .replaceFirst('!', '');
@@ -427,27 +456,39 @@ class _Lexer {
             }
             break;
           case '(':
-            if ('val' == state() || 'expr' == state()) states.add('expr');
+            if ('val' == state() || 'expr' == state()) {
+              states.add('expr');
+            }
             val += c;
             break;
           case ')':
-            if ('expr' == state() || 'val' == state()) states.removeLast();
+            if ('expr' == state() || 'val' == state()) {
+              states.removeLast();
+            }
             val += c;
             break;
           case '{':
-            if ('val' == state()) states.add('object');
+            if ('val' == state()) {
+              states.add('object');
+            }
             val += c;
             break;
           case '}':
-            if ('object' == state()) states.removeLast();
+            if ('object' == state()) {
+              states.removeLast();
+            }
             val += c;
             break;
           case '[':
-            if ('val' == state()) states.add('array');
+            if ('val' == state()) {
+              states.add('array');
+            }
             val += c;
             break;
           case ']':
-            if ('array' == state()) states.removeLast();
+            if ('array' == state()) {
+              states.removeLast();
+            }
             val += c;
             break;
           case '"':
@@ -460,7 +501,9 @@ class _Lexer {
                 states.removeLast();
                 break;
               case 'string':
-                if (c == quote) states.removeLast();
+                if (c == quote) {
+                  states.removeLast();
+                }
                 val += c;
                 break;
               default:
@@ -509,17 +552,19 @@ class _Lexer {
       // determine regexp
     } else {
       // tabs
-      re = RegExp(r"^\n(\t*) *");
+      re = RegExp(r'^\n(\t*) *');
       captures = exec(re, input);
 
       // spaces
-      if (captures != null && captures[1].length == 0) {
-        re = RegExp(r"^\n( *)");
+      if (captures != null && captures[1].isEmpty) {
+        re = RegExp(r'^\n( *)');
         captures = exec(re, input);
       }
 
       // established
-      if (captures != null && captures[1].length > 0) indentRe = re;
+      if (captures != null && captures[1].isNotEmpty) {
+        indentRe = re;
+      }
     }
 
     if (captures != null) {
@@ -536,18 +581,20 @@ class _Lexer {
       }
 
       // blank line
-      if ('\n' == firstChar) return tok('newline');
+      if ('\n' == firstChar) {
+        return tok('newline');
+      }
 
       // outdent
-      if (indentStack.length > 0 && indents < indentStack[0]) {
-        while (indentStack.length > 0 && indentStack[0] > indents) {
+      if (indentStack.isNotEmpty && indents < indentStack[0]) {
+        while (indentStack.isNotEmpty && indentStack[0] > indents) {
           stash.add(tok('outdent'));
           indentStack.removeAt(0);
         }
         _tok = stash.removeLast();
         // indent
       } else if (indents > 0 &&
-          indents != (indentStack.length > 0 ? indentStack[0] : null)) {
+          indents != (indentStack.isNotEmpty ? indentStack[0] : null)) {
         indentStack.insert(0, indents);
         _tok = tok('indent', indents);
         // newline
@@ -561,52 +608,118 @@ class _Lexer {
 
   _Token pipelessText() {
     if (pipeless) {
-      if (input.startsWith('\n')) return null;
+      if (input.startsWith('\n')) {
+        return null;
+      }
       var i = input.indexOf('\n');
-      if (-1 == i) i = input.length;
+      if (-1 == i) {
+        i = input.length;
+      }
       var str = input.substring(0, i);
       consume(str.length);
       return tok('text', str);
     }
   }
 
-  _Token colon() => scan(RegExp(r"^: *"), ':');
+  _Token colon() => scan(RegExp(r'^: *'), ':');
   //ignore: unnecessary_lambdas
-  _Token advance() => or(stashed(), ()=>next());
+  _Token advance() => or(stashed(), () => next());
 
   _Token next() {
     var ret;
-    if ((ret = deferred()) != null) return ret;
-    if ((ret = blank()) != null) return ret;
-    if ((ret = eos()) != null) return ret;
-    if ((ret = pipelessText()) != null) return ret;
-    if ((ret = yield()) != null) return ret;
-    if ((ret = doctype()) != null) return ret;
-    if ((ret = interpolation()) != null) return ret;
-    if ((ret = Case()) != null) return ret;
-    if ((ret = when()) != null) return ret;
-    if ((ret = Default()) != null) return ret;
-    if ((ret = Extends()) != null) return ret;
-    if ((ret = append()) != null) return ret;
-    if ((ret = prepend()) != null) return ret;
-    if ((ret = block()) != null) return ret;
-    if ((ret = include()) != null) return ret;
-    if ((ret = mixin()) != null) return ret;
-    if ((ret = call()) != null) return ret;
-    if ((ret = conditional()) != null) return ret;
-    if ((ret = each()) != null) return ret;
-    if ((ret = While()) != null) return ret;
-    if ((ret = assignment()) != null) return ret;
-    if ((ret = tag()) != null) return ret;
-    if ((ret = filter()) != null) return ret;
-    if ((ret = code()) != null) return ret;
-    if ((ret = id()) != null) return ret;
-    if ((ret = className()) != null) return ret;
-    if ((ret = attrs()) != null) return ret;
-    if ((ret = indent()) != null) return ret;
-    if ((ret = comment()) != null) return ret;
-    if ((ret = colon()) != null) return ret;
-    if ((ret = text()) != null) return ret;
+    if ((ret = deferred()) != null) {
+      return ret;
+    }
+    if ((ret = blank()) != null) {
+      return ret;
+    }
+    if ((ret = eos()) != null) {
+      return ret;
+    }
+    if ((ret = pipelessText()) != null) {
+      return ret;
+    }
+    if ((ret = yield()) != null) {
+      return ret;
+    }
+    if ((ret = doctype()) != null) {
+      return ret;
+    }
+    if ((ret = interpolation()) != null) {
+      return ret;
+    }
+    if ((ret = Case()) != null) {
+      return ret;
+    }
+    if ((ret = when()) != null) {
+      return ret;
+    }
+    if ((ret = Default()) != null) {
+      return ret;
+    }
+    if ((ret = Extends()) != null) {
+      return ret;
+    }
+    if ((ret = append()) != null) {
+      return ret;
+    }
+    if ((ret = prepend()) != null) {
+      return ret;
+    }
+    if ((ret = block()) != null) {
+      return ret;
+    }
+    if ((ret = include()) != null) {
+      return ret;
+    }
+    if ((ret = mixin()) != null) {
+      return ret;
+    }
+    if ((ret = call()) != null) {
+      return ret;
+    }
+    if ((ret = conditional()) != null) {
+      return ret;
+    }
+    if ((ret = each()) != null) {
+      return ret;
+    }
+    if ((ret = While()) != null) {
+      return ret;
+    }
+    if ((ret = assignment()) != null) {
+      return ret;
+    }
+    if ((ret = tag()) != null) {
+      return ret;
+    }
+    if ((ret = filter()) != null) {
+      return ret;
+    }
+    if ((ret = code()) != null) {
+      return ret;
+    }
+    if ((ret = id()) != null) {
+      return ret;
+    }
+    if ((ret = className()) != null) {
+      return ret;
+    }
+    if ((ret = attrs()) != null) {
+      return ret;
+    }
+    if ((ret = indent()) != null) {
+      return ret;
+    }
+    if ((ret = comment()) != null) {
+      return ret;
+    }
+    if ((ret = colon()) != null) {
+      return ret;
+    }
+    if ((ret = text()) != null) {
+      return ret;
+    }
     return null;
   }
 }

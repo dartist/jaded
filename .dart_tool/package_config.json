@@ -129,9 +129,9 @@
     },
     {
       "name": "logging",
-      "rootUri": "file:///Users/ericcheney/.pub-cache/hosted/pub.dartlang.org/logging-0.11.3+2",
+      "rootUri": "file:///Users/ericcheney/.pub-cache/hosted/pub.dartlang.org/logging-0.11.4",
       "packageUri": "lib/",
-      "languageVersion": "1.5"
+      "languageVersion": "2.0"
     },
     {
       "name": "markdown",
@@ -231,7 +231,7 @@
     },
     {
       "name": "sass",
-      "rootUri": "file:///Users/ericcheney/.pub-cache/hosted/pub.dartlang.org/sass-1.24.4",
+      "rootUri": "file:///Users/ericcheney/.pub-cache/hosted/pub.dartlang.org/sass-1.25.0",
       "packageUri": "lib/",
       "languageVersion": "2.6"
     },
@@ -273,9 +273,9 @@
     },
     {
       "name": "source_span",
-      "rootUri": "file:///Users/ericcheney/.pub-cache/hosted/pub.dartlang.org/source_span-1.5.5",
+      "rootUri": "file:///Users/ericcheney/.pub-cache/hosted/pub.dartlang.org/source_span-1.6.0",
       "packageUri": "lib/",
-      "languageVersion": "1.8"
+      "languageVersion": "2.6"
     },
     {
       "name": "stack_trace",
@@ -309,19 +309,19 @@
     },
     {
       "name": "test",
-      "rootUri": "file:///Users/ericcheney/.pub-cache/hosted/pub.dartlang.org/test-1.11.0",
+      "rootUri": "file:///Users/ericcheney/.pub-cache/hosted/pub.dartlang.org/test-1.11.1",
       "packageUri": "lib/",
       "languageVersion": "2.3"
     },
     {
       "name": "test_api",
-      "rootUri": "file:///Users/ericcheney/.pub-cache/hosted/pub.dartlang.org/test_api-0.2.12",
+      "rootUri": "file:///Users/ericcheney/.pub-cache/hosted/pub.dartlang.org/test_api-0.2.13",
       "packageUri": "lib/",
       "languageVersion": "2.3"
     },
     {
       "name": "test_core",
-      "rootUri": "file:///Users/ericcheney/.pub-cache/hosted/pub.dartlang.org/test_core-0.2.17",
+      "rootUri": "file:///Users/ericcheney/.pub-cache/hosted/pub.dartlang.org/test_core-0.2.18",
       "packageUri": "lib/",
       "languageVersion": "2.3"
     },
@@ -368,7 +368,7 @@
       "languageVersion": "2.3"
     }
   ],
-  "generated": "2020-01-21T03:26:35.641191Z",
+  "generated": "2020-01-21T18:42:54.421856Z",
   "generator": "pub",
   "generatorVersion": "2.7.0"
 }

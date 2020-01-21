@@ -5,10 +5,11 @@ var _clientFilters = <String, Function>{};
 
 dynamic _clientFilter(String name, String str, Map options) {
   var res;
-  if (_clientFilters[name] is Function){
-    res = _clientFilters[name](str, options);}
-  else{
-    throw ParseError('unknown filter ":$name"');}
+  if (_clientFilters[name] is Function) {
+    res = _clientFilters[name](str, options);
+  } else {
+    throw ParseError('unknown filter ":$name"');
+  }
 
   return res;
 }
