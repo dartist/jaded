@@ -8,9 +8,9 @@ class _AttrsTuple {
 }
 
 class _Compiler {
-  Node node;
-  bool hasCompiledDoctype = false;
-  bool hasCompiledTag = false;
+  _Node node;
+  bool hasCompiled_Doctype = false;
+  bool hasCompiled_Tag = false;
   bool pp = false;
   String filename;
   bool escape = false;
@@ -28,7 +28,7 @@ class _Compiler {
   bool autoSemicolons;
   Function addVarReference;
 
-  bool withinCase = false;
+  bool within_Case = false;
 
   _Compiler(this.node,
       {bool pretty = false,
@@ -36,13 +36,13 @@ class _Compiler {
       this.doctype,
       this.filename,
       this.autoSemicolons = true}) {
-    hasCompiledDoctype = false;
-    hasCompiledTag = false;
+    hasCompiled_Doctype = false;
+    hasCompiled_Tag = false;
     pp = pretty;
     debug = compileDebug;
     indents = 0;
     parentIndents = 0;
-    if (doctype != null) setDoctype(doctype);
+    if (doctype != null) set_Doctype(doctype);
     addVarReference = (str) => throw UnimplementedError("addVarReference");
   }
 
@@ -54,7 +54,7 @@ class _Compiler {
     return buf.join('\n');
   }
 
-  void setDoctype([String name = "default"]) {
+  void set_Doctype([String name = "default"]) {
     doctype = or(_doctypes[name.toLowerCase()], '<!DOCTYPE $name>');
     terse = doctype.toLowerCase() == '<!doctype html>';
     xml = 0 == doctype.indexOf('<?xml');
@@ -134,7 +134,7 @@ class _Compiler {
     }
   }
 
-  void visit(Node node) {
+  void visit(_Node node) {
     if (debug) {
       var filename = node.filename != null
           ? CONV.json.encode(node.filename)
@@ -150,12 +150,12 @@ class _Compiler {
       buf.removeLast();
     }
 
-    _visitNode(node);
+    _visit_Node(node);
 
     if (debug) buf.add('jade.debug.removeAt(0);');
   }
 
-  _visitNode(Node node) {
+  _visit_Node(_Node node) {
     var name = MirrorSystem.getName(reflect(node).type.simpleName);
     var method = Symbol('visit' + name);
     var im = reflect(this);
@@ -167,27 +167,27 @@ class _Compiler {
     }
   }
 
-  void visitCase(Case node) {
-    var _ = withinCase;
-    withinCase = true;
+  void visit_Case(_Case node) {
+    var _ = within_Case;
+    within_Case = true;
     buf.add('switch (${node.expr}){');
     visit(node.block);
     buf.add('}');
-    withinCase = _;
+    within_Case = _;
   }
 
-  void visitWhen(When node) {
+  void visit_When(_When node) {
     buf.add('default' == node.expr ? 'default:' : 'case ${node.expr}:');
     visit(node.block);
     buf.add('  break;');
   }
 
-  void visitLiteral(Literal node) => buffer(node.str);
+  void visit_Literal(_Literal node) => buffer(node.str);
 
-  void visitBlock(Block block) {
+  void visit_Block(_Block block) {
     var len = block.nodes.length;
 
-    // Block keyword has a special meaning in mixins
+    // _Block keyword has a special meaning in mixins
     if (parentIndents > 0 && block.mode != null) {
       if (pp){
         buf.add(
@@ -201,36 +201,36 @@ class _Compiler {
     if (pp &&
         len > 1 &&
         !escape &&
-        block.nodes[0].isText &&
-        block.nodes[1].isText) prettyIndent(offset:1, newline:true);
+        block.nodes[0].is_Text &&
+        block.nodes[1].is_Text) prettyIndent(offset:1, newline:true);
 
     for (var i = 0; i < len; ++i) {
       // Pretty print text
       if (pp &&
           i > 0 &&
           !escape &&
-          block.nodes[i].isText &&
-          block.nodes[i - 1].isText) {prettyIndent(offset:1, newline:false);}
+          block.nodes[i].is_Text &&
+          block.nodes[i - 1].is_Text) {prettyIndent(offset:1, newline:false);}
 
       visit(block.nodes[i]);
       // Multiple text nodes are separated by newlines
       if (block.nodes.length > i + 1 &&
-          block.nodes[i].isText &&
-          block.nodes[i + 1].isText) buffer('\n');
+          block.nodes[i].is_Text &&
+          block.nodes[i + 1].is_Text) buffer('\n');
     }
   }
 
-  void visitDoctype([Doctype doctype]) {
+  void visit_Doctype([_Doctype doctype]) {
     if (doctype != null && (doctype.val != null || this.doctype == null)) {
-      setDoctype(
+      set_Doctype(
           doctype.val != null && doctype.val != null ? doctype.val : 'default');
     }
 
     if (this.doctype != null) buffer(this.doctype);
-    hasCompiledDoctype = true;
+    hasCompiled_Doctype = true;
   }
 
-  void visitMixin(Mixin mixin) {
+  void visit_Mixin(_Mixin mixin) {
     var name = mixin.name.replaceAll("-", '_') + '_mixin';
     String args = or(mixin.args, '');
     var block = mixin.block;
@@ -299,7 +299,7 @@ class _Compiler {
     }
   }
 
-  void visitTag(Tag tag) {
+  void visit_Tag(_Tag tag) {
     indents++;
     var name = tag.name;
 
@@ -310,11 +310,11 @@ class _Compiler {
         buffer(name);}
     }
 
-    if (!hasCompiledTag) {
-      if (!hasCompiledDoctype && 'html' == name) {
-        visitDoctype();
+    if (!hasCompiled_Tag) {
+      if (!hasCompiled_Doctype && 'html' == name) {
+        visit_Doctype();
       }
-      hasCompiledTag = true;
+      hasCompiled_Tag = true;
     }
 
     // pretty print
@@ -337,7 +337,7 @@ class _Compiler {
         bufferName();
         buffer('>');
       }
-      if (tag.code != null) visitCode(tag.code);
+      if (tag.code != null) visit_Code(tag.code);
       escape = 'pre' == tag.name;
       visit(tag.block);
 
@@ -353,22 +353,22 @@ class _Compiler {
     indents--;
   }
 
-  void visitFilter(Filter nodeFilter) {
-    var text = nodeFilter.block.nodes.map((node) => node.val).join('\n');
-    if (nodeFilter.attrs == null) nodeFilter.attrs = {};
-    nodeFilter.attrs['filename'] = filename;
-    buffer(_filter(nodeFilter.name, text, nodeFilter.attrs), interpolate:true);
+  void visit_Filter(_Filter node_Filter) {
+    var text = node_Filter.block.nodes.map((node) => node.val).join('\n');
+    if (node_Filter.attrs == null) node_Filter.attrs = {};
+    node_Filter.attrs['filename'] = filename;
+    buffer(_filter(node_Filter.name, text, node_Filter.attrs), interpolate:true);
   }
 
-  void visitText(Text text) => buffer(text.val, interpolate:true);
+  void visit_Text(_Text text) => buffer(text.val, interpolate:true);
 
-  void visitComment(Comment comment) {
+  void visit_Comment(_Comment comment) {
     if (!comment.buffer) {return;}
     if (pp) {prettyIndent(offset:1, newline:true);}
     buffer('<!--${comment.val}-->');
   }
 
-  void visitBlockComment(BlockComment comment) {
+  void visit_Block_Comment(_Block_Comment comment) {
     if (!comment.buffer) {return;}
     if (0 == comment.val.trim().indexOf('if')) {
       buffer('<!--[${comment.val.trim()}]>');
@@ -381,7 +381,7 @@ class _Compiler {
     }
   }
 
-  void visitCode(Code code) {
+  void visit_Code(_Code code) {
     // Wrap code blocks with {}.
     // we only wrap unbuffered code blocks ATM
     // since they are usually flow control
@@ -402,7 +402,7 @@ class _Compiler {
       buf.add(stmt);
     }
 
-    // Block support
+    // _Block support
     if (code.block != null) {
       if (!code.buffer) {buf.add('{');}
       visit(code.block);

@@ -1,24 +1,25 @@
+//ignore_for_file: non_constant_identifier_names,camel_case_types,avoid_positional_boolean_parameters,lines_longer_than_80_chars
 part of jaded;
 
-abstract class Node {
+abstract class _Node {
   bool yield = false;
   dynamic textOnly = false;
-  Block block;
+  _Block block;
   bool debug;
-  bool isText = false;
+  bool is_Text = false;
   String filename;
   String val;
   bool buffer = false; //?
   int line; //?
-  get isInline => false;
-  get isBlock => false;
+  bool get isInline => false;
+  bool get is_Block => false;
+  //ignore: avoid_returning_this
+  _Node clone() => this;
 
-  Node clone() => this;
+  String get label => '''$runtimeType: ${block != null ? block.nodes.length : 0} blocks''';
+  String toString() => toDebugString(0);
 
-  get label => "$runtimeType: ${block != null ? block.nodes.length : 0} blocks";
-  toString() => toDebugString(0);
-
-  toDebugString(int indent) {
+  String toDebugString(int indent) {
     var spaces = List.filled(indent, '').join("  ");
     var str = "$spaces$label";
     if (block != null) {
@@ -29,63 +30,63 @@ abstract class Node {
   }
 }
 
-class Block extends Node {
-  List<Node> nodes = [];
-  bool isBlock = true;
+class _Block extends _Node {
+  List<_Node> nodes = [];
+  bool is_Block = true;
   String mode;
-  List<Node> prepended = [];
-  List<Node> appended = [];
+  List<_Node> prepended = [];
+  List<_Node> appended = [];
   Parser parser;
 
-  Block([node]) {
+  _Block([node]) {
     if (node != null) nodes.add(node);
   }
 
-  void replace(Block other) {
+  void replace(_Block other) {
     other.nodes = nodes;
   }
 
-  add(Node node) {
+  void add(_Node node) {
     nodes.add(node);
   }
 
-  get isEmpty => nodes.isEmpty;
+  bool get isEmpty => nodes.isEmpty;
 
-  unshift(Node node) {
+  int unshift(_Node node) {
     nodes.insert(0, node);
     return nodes.length;
   }
 
-  includeBlock() {
+  dynamic include_Block() {
     var ret = this;
 
     for (var node in nodes) {
-      if (node.yield)
-        return node;
-      else if (node.textOnly)
-        continue;
-      else if (node is Block)
-        ret = node.includeBlock();
-      else if (node.block != null && !node.block.isEmpty)
-        ret = node.block.includeBlock();
-      if (ret.yield) return ret;
+      if (node.yield){
+        return node;}
+      else if (node.textOnly){
+        continue;}
+      else if (node is _Block){
+        ret = node.include_Block();}
+      else if (node.block != null && !node.block.isEmpty){
+        ret = node.block.include_Block();}
+      if (ret.yield) {return ret;}
     }
 
     return ret;
   }
 
-  clone() {
-    var clone = Block();
+  _Block clone() {
+    var clone = _Block();
     for (var node in nodes) {
       clone.add(node.clone());
     }
     return clone;
   }
 
-  get label => "$runtimeType: ${nodes.length} nodes:";
-  toString() => toDebugString(0);
+  String get label => "$runtimeType: ${nodes.length} nodes:";
+  String toString() => toDebugString(0);
 
-  toDebugString(int indent) {
+  String toDebugString(int indent) {
     var spaces = List.filled(indent, '').join("  ");
     var str = "$spaces$label";
     for (var i = 0; i < nodes.length; i++) {
@@ -96,158 +97,158 @@ class Block extends Node {
   }
 }
 
-class Attr {
+class _Attr {
   String name;
-  var val;
+  dynamic val;
   bool escaped;
+  //ignore: avoid_positional_boolean_parameters
+  _Attr([this.name, this.val, this.escaped]);
 
-  Attr([this.name, this.val, this.escaped]);
-
-  toString() => "$name = $val / $escaped";
+  String toString() => "$name = $val / $escaped";
 }
 
-class Attrs extends Node {
+class _Attrs extends _Node {
   List<dynamic> attrs = [];
 
-  void setAttribute(String name, var val, [bool escaped = false]) {
-    attrs.add(Attr(name, val, escaped));
+  void set_Attribute(String name, dynamic val, {bool escaped = false}) {
+    attrs.add(_Attr(name, val, escaped));
   }
 
-  void removeAttribute(String name) {
+  void remove_Attribute(String name) {
     for (var i = 0, len = attrs.length; i < len; ++i) {
-      if (attrs[i] != null && attrs[i].name == name) this.attrs.removeAt(i);
+      if (attrs[i] != null && attrs[i].name == name) {attrs.removeAt(i);}
     }
   }
 
-  getAttribute(name) {
+  dynamic get_Attribute(dynamic name) {
     var attr = attrs.firstWhere((x) => x != null && x.name == name,
         orElse: () => null);
     return attr != null ? attr.val : null;
   }
 }
 
-class BlockComment extends Node {
-  Block block;
+class _Block_Comment extends _Node {
+  _Block block;
   String val;
   bool buffer;
 
-  BlockComment([this.val, this.block, this.buffer]);
+  _Block_Comment([this.val, this.block, this.buffer]);
 }
 
-class Case extends Node {
+class _Case extends _Node {
   String expr;
-  Block block;
+  _Block block;
 
-  Case([this.expr, this.block]);
+  _Case([this.expr, this.block]);
 }
 
-class When extends Node {
+class _When extends _Node {
   String expr;
-  Block block;
+  _Block block;
   bool debug = false;
 
-  When([this.expr, this.block]);
+  _When([this.expr, this.block]);
 }
 
-class Code extends Node {
+class _Code extends _Node {
   String val;
   bool buffer;
   bool escape;
   bool debug;
 
-  Code([this.val, this.buffer, this.escape]) {
+  _Code([this.val, this.buffer, this.escape]) {
     if (RegExp(r"^ *else").hasMatch(val)) debug = false;
     if (buffer == null) buffer = false;
   }
 
-  toString() => val;
+  String toString() => val;
 }
 
-class Comment extends Node {
+class _Comment extends _Node {
   String val;
 
-  Comment([this.val, buffer]) {
+  _Comment([this.val, buffer]) {
     this.buffer = buffer;
   }
 }
 
-class Doctype extends Node {
+class _Doctype extends _Node {
   String val;
-  Doctype(this.val);
+  _Doctype(this.val);
 }
 
-class Each extends Node {
+class Each extends _Node {
   Object obj;
   String val;
   String key;
-  Block block;
-  Node alternative;
+  _Block block;
+  _Node alternative;
 
   Each(this.obj, this.val, this.key, [this.block]);
 }
 
-class Filter extends Node {
+class _Filter extends _Node {
   String name;
-  Block block;
+  _Block block;
   Map attrs;
 
-  Filter(this.name, this.block, this.attrs);
+  _Filter(this.name, this.block, this.attrs);
 }
 
-class Literal extends Node {
+class _Literal extends _Node {
   String str;
-  Literal(this.str);
+  _Literal(this.str);
 }
 
-class Mixin extends Tag {
+class _Mixin extends _Tag {
   String name;
   String args;
-  Block block;
+  _Block block;
   bool call = false;
   List attrs = [];
 
-  Mixin([this.name, this.args, this.block, this.call]);
+  _Mixin([this.name, this.args, this.block, this.call]);
 }
 
-class Tag extends Attrs {
+class _Tag extends _Attrs {
   String name;
-  Block block;
+  _Block block;
   List attrs = [];
   bool selfClosing = false;
-  Code code;
+  _Code code;
 
-  Tag([this.name, this.block]) {
-    if (block == null) block = Block();
+  _Tag([this.name, this.block]) {
+    if (block == null) block = _Block();
   }
 
-  clone() {
-    return Tag(this.name, this.block.clone())
+  _Tag clone() {
+    return _Tag(name, block.clone())
       ..line = line
       ..attrs = attrs
       ..textOnly = textOnly;
   }
 
-  get isInline => _inlineTags.contains(this.name);
+  bool get isInline => _inlineTags.contains(name);
 
   bool canInline() {
     var nodes = block.nodes;
 
-    bool isInline(Node node) {
+    bool isInline(_Node node) {
       // Recurse if the node is a block
-      if (node.isBlock) return (node as Block).nodes.every(isInline);
-      return node.isText || (node.isInline);
+      if (node.is_Block) return (node as _Block).nodes.every(isInline);
+      return node.is_Text || (node.isInline);
     }
 
     // Empty tag
     if (nodes.length == 0) return true;
 
-    // Text-only or inline-only tag
+    // _Text-only or inline-only tag
     if (1 == nodes.length) return isInline(nodes[0]);
 
     // Multi-line inline-only tag
-    if (this.block.nodes.every(isInline)) {
+    if (block.nodes.every(isInline)) {
       for (var i = 1, len = nodes.length; i < len; ++i) {
-        if (nodes[i - 1].isText && nodes[i].isText) return false;
+        if (nodes[i - 1].is_Text && nodes[i].is_Text) return false;
       }
       return true;
     }
@@ -256,16 +257,16 @@ class Tag extends Attrs {
     return false;
   }
 
-  get label => "$runtimeType: <$name${selfClosing ? '/' : '></$name>'}";
+  String get label => "$runtimeType: <$name${selfClosing ? '/' : '></$name>'}";
 }
 
-class Text extends Node {
+class _Text extends _Node {
   String val = '';
-  bool isText = true;
+  bool is_Text = true;
 
-  Text(line) {
-    if (line is String) this.val = line;
+  _Text(line) {
+    if (line is String) {val = line;}
   }
 
-  toString() => val;
+  String toString() => val;
 }
