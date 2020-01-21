@@ -1,6 +1,6 @@
 # jaded
 
-![https://img.shields.io/badge/style-effective_dart-40c4ff.svg](https://github.com/tenhobi/effective_dart)
+[![](https://img.shields.io/badge/style-effective_dart-40c4ff.svg)](https://github.com/tenhobi/effective_dart)
 
 Port of the excellent [Pug, formerly Jade view engine](https://github.com/pugjs/pug#rename-from-jade) in Dart.
 
