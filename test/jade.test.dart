@@ -52,7 +52,7 @@ void main() {
   void runGroups(int groupNo, a, fn) {
     switch (groupNo) {
       case 0:
-// Comment out tests you dont want to run
+// Comment out groups you dont want to run
 // Uncomment groups to run
       case 1:
       case 2:
@@ -1176,11 +1176,11 @@ void main() {
               }
             });
       });
-      // test('test deeply-nested locals 2', () async {
-      // renderEquals('<p>/foo</p>', 'p #{request["path"]}',locals:{
-      //         'request': {'path': '/foo'}
-      //       });
-      // });
+      test('test deeply-nested locals 2', () async {
+      renderEquals('<p>/foo</p>', 'p #{request["path"]}',locals:{
+              'request': {'path': '/foo'}
+            });
+      });
     });
   });
 }

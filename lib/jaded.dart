@@ -7,6 +7,7 @@ import 'dart:isolate';
 import 'dart:mirrors';
 
 import 'package:character_parser/character_parser.dart';
+import 'package:dart_style/dart_style.dart';
 import 'package:markdown/markdown.dart';
 import 'package:node_shims/node_shims.dart';
 import 'package:sass/sass.dart' as sass;
@@ -150,7 +151,7 @@ String _compileBody(String str,
 jade.debug = [Debug(lineno: 1, filename: ${filename != null ? conv.json.encode(filename) : 'null'})];
 try {
 $fnBody
-} catch (err) {
+} on Exception catch (err) {
   jade.rethrows(err, jade.debug[0].filename, jade.debug[0].lineno);
 }
 ''';
@@ -159,20 +160,20 @@ $fnBody
 RenderAsync _runCompiledDartInIsolate(String fn) {
 //Execute fn within Isolate. Shim Jade objects.
   var isolateWrapper = '''
-import 'dart:isolate';
-import 'package:jaded/runtime.dart';
-import 'package:jaded/runtime.dart' as jade;
 import 'dart:convert';
+import 'dart:isolate';
 
-render(Map locals) {
+import 'package:jaded/runtime.dart' as jade;
+
+String render(Map locals) {
   try{
     $fn
-  } catch(e){
-    print(e);
+  } catch (e) {
+    print("");
   }
 }
 
-main(List args, SendPort replyTo) {
+void main(List args, SendPort replyTo) {
   var html = render(json.decode(args.first));
     replyTo.send(html.toString());
 }
@@ -180,7 +181,10 @@ main(List args, SendPort replyTo) {
 
   //Hack: Write compiled dart out to a static file
   var absolutePath = '${Directory.current.path}/jaded.views.dart';
-  File(absolutePath).writeAsStringSync(isolateWrapper);
+  //  added a formatter to assist with linter warnings upon write-out,
+  // and analyzer warnings upon start up.
+  var formatter = DartFormatter(fixes: StyleFix.all);
+  File(absolutePath).writeAsStringSync(formatter.format(isolateWrapper));
 
   //Re-read back generated file inside an isolate
   Future<String> renderAsync([Map locals = const {}]) {
@@ -193,6 +197,7 @@ main(List args, SendPort replyTo) {
 
     isolate.catchError((_) {
       // print('isolate error: ${err}');
+
       completer.completeError;
     });
 
@@ -317,8 +322,7 @@ String renderFiles(String basedir, Iterable<dynamic> files,
 
   var sb = StringBuffer()
     ..writeln('library jade_$libName;')
-    ..writeln("import 'package:jaded/runtime.dart';")
-    ..writeln("import 'package:jaded/runtime.dart' as jade;")
+    ..writeln("import 'package:jaded/runtime.dart' as jade;\n")
     ..writeln('Map<String,Function> $templatesMapName = {');
 
   void _feFunc(dynamic x) {
@@ -326,7 +330,7 @@ String renderFiles(String basedir, Iterable<dynamic> files,
     var fnBody = _compileBody(str, filename: x.path, basedir: basedir);
     var pathWebStyle = x.path.replaceAll('\\', '/');
     sb.write('''
-'$pathWebStyle': ([Map locals]){///jade-begin
+'$pathWebStyle': ([locals]){///jade-begin
   if (locals == null) locals = {};
   $fnBody
 },///jade-end
@@ -335,10 +339,10 @@ String renderFiles(String basedir, Iterable<dynamic> files,
 
   files.forEach(_feFunc);
 
-  sb.writeln('};');
-
+  sb.writeln('};\n//ignore_for_file: prefer_interpolation_to_compose_strings,unused_local_variable');
+  var formatter = DartFormatter(fixes:StyleFix.all);
   var tmpls = sb.toString();
-  return tmpls;
+  return formatter.format(tmpls);
 }
 
 ///render a directory of Pug/Jade files

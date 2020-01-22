@@ -1,10 +1,9 @@
 library jade_files;
 
-import 'package:jaded/runtime.dart';
 import 'package:jaded/runtime.dart' as jade;
 
 Map<String, Function> JADE_TEMPLATES = {
-  'files/views/sub/app-layout.jade': ([Map locals]) {
+  'files/views/sub/app-layout.jade': ([locals]) {
     ///jade-begin
     if (locals == null) locals = {};
 
@@ -18,7 +17,7 @@ Map<String, Function> JADE_TEMPLATES = {
   },
 
   ///jade-end
-  'files/views/sub/page.jade': ([Map locals]) {
+  'files/views/sub/page.jade': ([locals]) {
     ///jade-begin
     if (locals == null) locals = {};
 
@@ -32,7 +31,7 @@ Map<String, Function> JADE_TEMPLATES = {
   },
 
   ///jade-end
-  'files/views/sub/sub2/perf.jade': ([Map locals]) {
+  'files/views/sub/sub2/perf.jade': ([locals]) {
     ///jade-begin
     if (locals == null) locals = {};
     var report = locals['report'];
@@ -1225,7 +1224,7 @@ Map<String, Function> JADE_TEMPLATES = {
   },
 
   ///jade-end
-  'files/views/sub/sub2/scripts.jade': ([Map locals]) {
+  'files/views/sub/sub2/scripts.jade': ([locals]) {
     ///jade-begin
     if (locals == null) locals = {};
 
@@ -1239,7 +1238,7 @@ Map<String, Function> JADE_TEMPLATES = {
   },
 
   ///jade-end
-  'files/views/sub/layout.jade': ([Map locals]) {
+  'files/views/sub/layout.jade': ([locals]) {
     ///jade-begin
     if (locals == null) locals = {};
 
@@ -1253,7 +1252,7 @@ Map<String, Function> JADE_TEMPLATES = {
   },
 
   ///jade-end
-  'files/views/index.jade': ([Map locals]) {
+  'files/views/index.jade': ([locals]) {
     ///jade-begin
     if (locals == null) locals = {};
     var title = locals['title'];
@@ -1269,7 +1268,7 @@ Map<String, Function> JADE_TEMPLATES = {
   },
 
   ///jade-end
-  'files/views/layout.jade': ([Map locals]) {
+  'files/views/layout.jade': ([locals]) {
     ///jade-begin
     if (locals == null) locals = {};
     var title = locals['title'];
@@ -1286,3 +1285,4 @@ Map<String, Function> JADE_TEMPLATES = {
 
   ///jade-end
 };
+//ignore_for_file: prefer_interpolation_to_compose_strings,unused_local_variable

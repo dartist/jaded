@@ -501,7 +501,7 @@ class _Compiler {
       buf.add('    }');
     }
     buf.add(
-        '  }\n})();\n} catch(e){\nprint("");\n}'); //buf.add('  }\n}).call(this);\n');
+        '  }\n})();\n} catch (e){\nprint("");\n}'); //buf.add('  }\n}).call(this);\n');
   }
 
   void visitAttributes(List attrs) {

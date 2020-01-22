@@ -80,6 +80,12 @@
       "languageVersion": "2.1"
     },
     {
+      "name": "dart_style",
+      "rootUri": "file:///Users/ericcheney/.pub-cache/hosted/pub.dartlang.org/dart_style-1.3.3",
+      "packageUri": "lib/",
+      "languageVersion": "2.3"
+    },
+    {
       "name": "effective_dart",
       "rootUri": "file:///Users/ericcheney/.pub-cache/hosted/pub.dartlang.org/effective_dart-1.2.1",
       "packageUri": "lib/",
@@ -368,7 +374,7 @@
       "languageVersion": "2.3"
     }
   ],
-  "generated": "2020-01-21T19:05:06.048918Z",
+  "generated": "2020-01-22T00:45:05.713631Z",
   "generator": "pub",
   "generatorVersion": "2.7.0"
 }

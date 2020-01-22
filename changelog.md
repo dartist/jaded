@@ -35,3 +35,11 @@
 ## v. 0.2.1+2 -
 
 ### - minor doc improvements - fixed readme links
+
+----
+
+## v. 0.3.0
+
+### - added dart_formatter to code written that is written to files for isolate reading, in order to attempt to reduce analyzer warnings and keep the file readable if needed
+
+### - fixed a bug that broke testing functionaity
