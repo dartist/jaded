@@ -1177,9 +1177,9 @@ void main() {
             });
       });
       test('test deeply-nested locals 2', () async {
-      renderEquals('<p>/foo</p>', 'p #{request["path"]}',locals:{
-              'request': {'path': '/foo'}
-            });
+        renderEquals('<p>/foo</p>', 'p #{request["path"]}', locals: {
+          'request': {'path': '/foo'}
+        });
       });
     });
   });

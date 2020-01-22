@@ -20,7 +20,7 @@ Add this to your package's pubspec.yaml file:
 
 ```yaml
 dependencies:
-  jaded: 0.1.9
+  jaded: 0.3.0
 ```
 
 ## Public API

@@ -339,8 +339,9 @@ String renderFiles(String basedir, Iterable<dynamic> files,
 
   files.forEach(_feFunc);
 
-  sb.writeln('};\n//ignore_for_file: prefer_interpolation_to_compose_strings,unused_local_variable');
-  var formatter = DartFormatter(fixes:StyleFix.all);
+  sb.writeln(
+      '};\n//ignore_for_file: prefer_interpolation_to_compose_strings,unused_local_variable');
+  var formatter = DartFormatter(fixes: StyleFix.all);
   var tmpls = sb.toString();
   return formatter.format(tmpls);
 }

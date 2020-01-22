@@ -4,7 +4,7 @@ version: 0.3.0
 description: Port of node.js popular Jade view engine for Dart. Checkout the PugJS site for documentation and usage
 homepage: https://github.com/dartist/jaded
 repository: https://github.com/dartist/jaded
-documentation: [https://pugjs.org/ , https://github.com/pugjs/pug]
+documentation: https://github.com/pugjs/pug
 environment:
   sdk: ">=2.3.0 <3.0.0"
 dependencies:
